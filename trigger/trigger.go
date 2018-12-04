@@ -52,10 +52,11 @@ type Handler struct {
 
 // GRPCTrigger is a stub for your Trigger implementation
 type Trigger struct {
-	config   *trigger.Config
-	settings *Settings
-	handlers map[string]*Handler
-	server   *grpc.Server
+	config         *trigger.Config
+	settings       *Settings
+	handlers       map[string]*Handler
+	defaultHandler *Handler
+	server         *grpc.Server
 	TLSConfig
 	logger log.Logger
 }
@@ -87,9 +88,16 @@ func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 		if err != nil {
 			return err
 		}
-		handlers[settings.MethodName] = &Handler{
-			handler:  handler,
-			settings: settings,
+		if settings.MethodName == "" && t.defaultHandler == nil {
+			t.defaultHandler = &Handler{
+				handler:  handler,
+				settings: settings,
+			}
+		} else {
+			handlers[settings.MethodName] = &Handler{
+				handler:  handler,
+				settings: settings,
+			}
 		}
 	}
 	t.handlers = handlers
@@ -221,7 +229,10 @@ func (t *Trigger) CallHandler(grpcData map[string]interface{}) (int, interface{}
 	}
 
 	handler, ok := t.handlers[grpcData["methodName"].(string)]
-	if ok {
+	if !ok {
+		handler = t.defaultHandler
+	}
+	if handler != nil {
 		t.logger.Debug("Dispatch Found for ", handler.settings.MethodName)
 		results, err := handler.handler.Handle(context.Background(), out)
 		if err != nil {

@@ -2,6 +2,7 @@ module github.com/project-flogo/grpc
 
 require (
 	github.com/golang/protobuf v1.2.0
+	github.com/imdario/mergo v0.3.6
 	github.com/project-flogo/contrib v0.9.0-alpha.3.0.20181105173100-2e8b1851a5ac
 	github.com/project-flogo/core v0.9.0-alpha.3.0.20181105051932-8e2356547b1a
 	github.com/project-flogo/microgateway v0.0.0-20181124003442-4c8bde792cf2
