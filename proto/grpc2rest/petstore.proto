@@ -1,5 +1,5 @@
 syntax = "proto3";
-package main;
+package grpc2rest;
 
 message Pet {
     int32 id = 1;
@@ -29,17 +29,21 @@ message UserResponse {
     User user = 1;
 }
 
-message EmptyReq{
-    string msg = 1;
+message PetRequest {
+    int32 id = 1;
+    string name = 2;
 }
-message EmptyRes{
-    string msg = 1;
+
+message UserRequest {
+    int32 id = 1;
+    string username = 2;
+    string email = 3;
+    string phone = 4;
 }
 
 service PetStoreService {
     rpc PetById (PetByIdRequest) returns (PetResponse);
     rpc UserByName (UserByNameRequest) returns (UserResponse);
-    rpc ListUsers (EmptyReq) returns (stream User);
-    rpc StoreUsers (stream User)returns (EmptyRes);
-    rpc BulkUsers (stream User) returns (stream User);
+    rpc PetPUT (PetRequest) returns (PetResponse);
+    rpc UserPUT (UserRequest) returns (UserResponse);
 }

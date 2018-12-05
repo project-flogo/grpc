@@ -11,6 +11,7 @@ import (
 	"github.com/project-flogo/contrib/activity/rest"
 	"github.com/project-flogo/core/api"
 	"github.com/project-flogo/core/engine"
+	"github.com/project-flogo/grpc/proto/grpc2rest"
 	trigger "github.com/project-flogo/grpc/trigger"
 	"github.com/project-flogo/microgateway"
 	microapi "github.com/project-flogo/microgateway/api"
@@ -179,7 +180,7 @@ func callClient(port *string, option *string, id int, name string) {
 		log.Fatal(err)
 	}
 	defer conn.Close()
-	client := NewPetStoreServiceClient(conn)
+	client := grpc2rest.NewPetStoreServiceClient(conn)
 
 	switch *option {
 	case "pet":
@@ -193,8 +194,8 @@ func callClient(port *string, option *string, id int, name string) {
 }
 
 //UserByName comments
-func userByName(client PetStoreServiceClient, name string) {
-	res, err := client.UserByName(context.Background(), &UserByNameRequest{Username: name})
+func userByName(client grpc2rest.PetStoreServiceClient, name string) {
+	res, err := client.UserByName(context.Background(), &grpc2rest.UserByNameRequest{Username: name})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -202,22 +203,22 @@ func userByName(client PetStoreServiceClient, name string) {
 }
 
 //PetById comments
-func petById(client PetStoreServiceClient, id int) {
-	res, err := client.PetById(context.Background(), &PetByIdRequest{Id: int32(id)})
+func petById(client grpc2rest.PetStoreServiceClient, id int) {
+	res, err := client.PetById(context.Background(), &grpc2rest.PetByIdRequest{Id: int32(id)})
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("res :", res)
 }
 
-func petPUT(client PetStoreServiceClient, payload string) {
+func petPUT(client grpc2rest.PetStoreServiceClient, payload string) {
 
 	name := strings.Split(payload, ",")[1]
 	id, _ := strconv.ParseInt(strings.Split(payload, ",")[0], 0, 64)
 	if id == 0 {
 		log.Fatal("please provide valid id")
 	}
-	petReq := &PetRequest{Id: int32(id), Name: name}
+	petReq := &grpc2rest.PetRequest{Id: int32(id), Name: name}
 	fmt.Println("requesting pay load", petReq)
 	res, err := client.PetPUT(context.Background(), petReq)
 	if err != nil {

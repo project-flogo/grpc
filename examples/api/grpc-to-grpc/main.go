@@ -17,9 +17,11 @@ import (
 	"github.com/project-flogo/core/api"
 	"github.com/project-flogo/core/engine"
 	"github.com/project-flogo/grpc/activity"
+	"github.com/project-flogo/grpc/proto/grpc2grpc"
 	"github.com/project-flogo/grpc/trigger"
 	"github.com/project-flogo/microgateway"
 	microapi "github.com/project-flogo/microgateway/api"
+
 	"google.golang.org/grpc"
 )
 
@@ -30,13 +32,13 @@ var clientAddr string
 type ServerStrct struct {
 }
 
-var petMapArr = make(map[int32]Pet)
-var userMapArr = make(map[string]User)
+var petMapArr = make(map[int32]grpc2grpc.Pet)
+var userMapArr = make(map[string]grpc2grpc.User)
 
-var recUserArrClient = make([]User, 0)
-var recUserArrServer = make([]User, 0)
+var recUserArrClient = make([]grpc2grpc.User, 0)
+var recUserArrServer = make([]grpc2grpc.User, 0)
 
-var petArr = []Pet{
+var petArr = []grpc2grpc.Pet{
 	{
 		Id:   2,
 		Name: "cat2",
@@ -50,7 +52,7 @@ var petArr = []Pet{
 		Name: "cat4",
 	},
 }
-var userArr = []User{
+var userArr = []grpc2grpc.User{
 	{
 		Id:       2,
 		Username: "user2",
@@ -71,7 +73,7 @@ var userArr = []User{
 	},
 }
 
-var sendUserDataClient = []User{
+var sendUserDataClient = []grpc2grpc.User{
 	{
 		Id:       22,
 		Username: "user22c",
@@ -92,7 +94,7 @@ var sendUserDataClient = []User{
 	},
 }
 
-var sendUserDataServer = []User{
+var sendUserDataServer = []grpc2grpc.User{
 	{
 		Id:       32,
 		Username: "user32s",
@@ -200,7 +202,7 @@ func callClient(port *string, option *string, id int, name string) {
 		log.Fatal(err)
 	}
 	defer conn.Close()
-	client := NewPetStoreServiceClient(conn)
+	client := grpc2grpc.NewPetStoreServiceClient(conn)
 
 	switch *option {
 	case "pet":
@@ -217,8 +219,8 @@ func callClient(port *string, option *string, id int, name string) {
 }
 
 //userByName comments
-func userByName(client PetStoreServiceClient, name string) {
-	res, err := client.UserByName(context.Background(), &UserByNameRequest{Username: name})
+func userByName(client grpc2grpc.PetStoreServiceClient, name string) {
+	res, err := client.UserByName(context.Background(), &grpc2grpc.UserByNameRequest{Username: name})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -226,16 +228,16 @@ func userByName(client PetStoreServiceClient, name string) {
 }
 
 //petById comments
-func petById(client PetStoreServiceClient, id int) {
-	res, err := client.PetById(context.Background(), &PetByIdRequest{Id: int32(id)})
+func petById(client grpc2grpc.PetStoreServiceClient, id int) {
+	res, err := client.PetById(context.Background(), &grpc2grpc.PetByIdRequest{Id: int32(id)})
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("res :", res)
 }
 
-func listUsers(client PetStoreServiceClient) {
-	stream, err := client.ListUsers(context.Background(), &EmptyReq{Msg: "list of users"})
+func listUsers(client grpc2grpc.PetStoreServiceClient) {
+	stream, err := client.ListUsers(context.Background(), &grpc2grpc.EmptyReq{Msg: "list of users"})
 	if err != nil {
 		fmt.Println("erorr occured in ListUsers", err)
 	}
@@ -251,7 +253,7 @@ func listUsers(client PetStoreServiceClient) {
 	}
 }
 
-func storeUsers(client PetStoreServiceClient) {
+func storeUsers(client grpc2grpc.PetStoreServiceClient) {
 	stream, err := client.StoreUsers(context.Background())
 	if err != nil {
 		fmt.Println("erorr occured in StoreUsers", err)
@@ -270,7 +272,7 @@ func storeUsers(client PetStoreServiceClient) {
 				return
 			default:
 				i++
-				user := User{
+				user := grpc2grpc.User{
 					Username: "cuser" + strconv.Itoa(i),
 					Id:       int32(i),
 					Email:    "cemail" + strconv.Itoa(i),
@@ -295,7 +297,7 @@ func storeUsers(client PetStoreServiceClient) {
 
 }
 
-func bulkUsers(client PetStoreServiceClient) {
+func bulkUsers(client grpc2grpc.PetStoreServiceClient) {
 	stream, err := client.BulkUsers(context.Background())
 	if err != nil {
 		fmt.Println("error in streaming of bulk users", err)
@@ -326,7 +328,7 @@ func bulkUsers(client PetStoreServiceClient) {
 		}
 	}()
 	for i := 0; i < 10; i++ {
-		user := User{
+		user := grpc2grpc.User{
 			Username: "cuser" + strconv.Itoa(i),
 			Id:       int32(i),
 			Email:    "cemail" + strconv.Itoa(i),
@@ -351,20 +353,20 @@ func callServer() {
 
 	s := grpc.NewServer()
 
-	RegisterPetStoreServiceServer(s, new(ServerStrct))
+	grpc2grpc.RegisterPetStoreServiceServer(s, new(ServerStrct))
 
 	log.Println("Starting server on port: ", addr)
 
 	s.Serve(lis)
 }
 
-func (t *ServerStrct) PetById(ctx context.Context, req *PetByIdRequest) (*PetResponse, error) {
+func (t *ServerStrct) PetById(ctx context.Context, req *grpc2grpc.PetByIdRequest) (*grpc2grpc.PetResponse, error) {
 
 	fmt.Println("server PetById method called")
 
 	for _, pet := range petMapArr {
 		if pet.Id == req.Id {
-			return &PetResponse{Pet: &pet}, nil
+			return &grpc2grpc.PetResponse{Pet: &pet}, nil
 		}
 	}
 
@@ -372,13 +374,13 @@ func (t *ServerStrct) PetById(ctx context.Context, req *PetByIdRequest) (*PetRes
 
 }
 
-func (t *ServerStrct) UserByName(ctx context.Context, req *UserByNameRequest) (*UserResponse, error) {
+func (t *ServerStrct) UserByName(ctx context.Context, req *grpc2grpc.UserByNameRequest) (*grpc2grpc.UserResponse, error) {
 
 	fmt.Println("server UserByName method called")
 
 	for _, user := range userMapArr {
 		if req.Username == user.Username {
-			return &UserResponse{User: &user}, nil
+			return &grpc2grpc.UserResponse{User: &user}, nil
 		}
 	}
 
@@ -386,7 +388,7 @@ func (t *ServerStrct) UserByName(ctx context.Context, req *UserByNameRequest) (*
 
 }
 
-func (t *ServerStrct) ListUsers(req *EmptyReq, sReq PetStoreService_ListUsersServer) error {
+func (t *ServerStrct) ListUsers(req *grpc2grpc.EmptyReq, sReq grpc2grpc.PetStoreService_ListUsersServer) error {
 	fmt.Println("server ListUsers method called")
 	fmt.Println("request received from client ", req)
 	var i = 0
@@ -402,7 +404,7 @@ func (t *ServerStrct) ListUsers(req *EmptyReq, sReq PetStoreService_ListUsersSer
 			return nil
 		default:
 			i++
-			user := User{
+			user := grpc2grpc.User{
 				Username: "suser" + strconv.Itoa(i),
 				Id:       int32(i),
 				Email:    "semail" + strconv.Itoa(i),
@@ -416,7 +418,7 @@ func (t *ServerStrct) ListUsers(req *EmptyReq, sReq PetStoreService_ListUsersSer
 		}
 	}
 }
-func (t *ServerStrct) StoreUsers(cReq PetStoreService_StoreUsersServer) error {
+func (t *ServerStrct) StoreUsers(cReq grpc2grpc.PetStoreService_StoreUsersServer) error {
 	fmt.Println("server StoreUsers method called")
 	var i = 0
 	for {
@@ -426,14 +428,14 @@ func (t *ServerStrct) StoreUsers(cReq PetStoreService_StoreUsersServer) error {
 			fmt.Println("RECEIVED: ", userData.GetUsername())
 		}
 		if err == io.EOF {
-			return cReq.SendAndClose(&EmptyRes{Msg: "received total users:" + strconv.Itoa(i)})
+			return cReq.SendAndClose(&grpc2grpc.EmptyRes{Msg: "received total users:" + strconv.Itoa(i)})
 		}
 		if err != nil {
 			return err
 		}
 	}
 }
-func (t *ServerStrct) BulkUsers(bReq PetStoreService_BulkUsersServer) error {
+func (t *ServerStrct) BulkUsers(bReq grpc2grpc.PetStoreService_BulkUsersServer) error {
 	fmt.Println("server BulkUsers method called")
 	var rc = 0
 	waits := make(chan struct{})
@@ -458,7 +460,7 @@ func (t *ServerStrct) BulkUsers(bReq PetStoreService_BulkUsersServer) error {
 		}
 	}()
 	for i := 0; i < 10; i++ {
-		user := User{
+		user := grpc2grpc.User{
 			Username: "suser" + strconv.Itoa(i),
 			Id:       int32(i),
 			Email:    "semail" + strconv.Itoa(i),

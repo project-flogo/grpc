@@ -7,15 +7,16 @@ import (
 )
 
 var (
-	name      = flag.String("name", "", "name of application")
-	protoPath = flag.String("protoPath", "", "location of the proto file")
+	packageName = flag.String("package", "main", "package name")
+	output      = flag.String("output", ".", "name of output directory")
+	input       = flag.String("input", "", "location of the proto file")
 )
 
 func main() {
 	flag.Parse()
 
-	support.AssignValues(*name)
-	err := support.GenerateSupportFiles(*protoPath)
+	support.AssignValues(*output)
+	err := support.GenerateSupportFiles(*packageName, *input)
 	if err != nil {
 		panic(err)
 	}

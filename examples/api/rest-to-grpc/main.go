@@ -13,6 +13,7 @@ import (
 	"github.com/project-flogo/core/api"
 	"github.com/project-flogo/core/engine"
 	"github.com/project-flogo/grpc/activity"
+	"github.com/project-flogo/grpc/proto/rest2grpc"
 	"github.com/project-flogo/microgateway"
 	microapi "github.com/project-flogo/microgateway/api"
 
@@ -27,10 +28,10 @@ var clientAddr string
 type ServerStrct struct {
 }
 
-var petMapArr = make(map[int32]Pet)
-var userMapArr = make(map[string]User)
+var petMapArr = make(map[int32]rest2grpc.Pet)
+var userMapArr = make(map[string]rest2grpc.User)
 
-var petArr = []Pet{
+var petArr = []rest2grpc.Pet{
 	{
 		Id:   2,
 		Name: "cat2",
@@ -44,7 +45,7 @@ var petArr = []Pet{
 		Name: "cat4",
 	},
 }
-var userArr = []User{
+var userArr = []rest2grpc.User{
 	{
 		Id:       2,
 		Username: "user2",
@@ -184,7 +185,7 @@ func callClient(port *string, option *string, id int, name string) {
 		log.Fatal(err)
 	}
 	defer conn.Close()
-	client := NewPetStoreServiceClient(conn)
+	client := rest2grpc.NewPetStoreServiceClient(conn)
 
 	switch *option {
 	case "pet":
@@ -195,8 +196,8 @@ func callClient(port *string, option *string, id int, name string) {
 }
 
 //UserByName comments
-func userByName(client PetStoreServiceClient, name string) {
-	res, err := client.UserByName(context.Background(), &UserByNameRequest{Username: name})
+func userByName(client rest2grpc.PetStoreServiceClient, name string) {
+	res, err := client.UserByName(context.Background(), &rest2grpc.UserByNameRequest{Username: name})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -204,8 +205,8 @@ func userByName(client PetStoreServiceClient, name string) {
 }
 
 //PetById comments
-func petById(client PetStoreServiceClient, id int) {
-	res, err := client.PetById(context.Background(), &PetByIdRequest{Id: int32(id)})
+func petById(client rest2grpc.PetStoreServiceClient, id int) {
+	res, err := client.PetById(context.Background(), &rest2grpc.PetByIdRequest{Id: int32(id)})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -221,19 +222,19 @@ func callServer() {
 
 	s := grpc.NewServer()
 
-	RegisterPetStoreServiceServer(s, new(ServerStrct))
+	rest2grpc.RegisterPetStoreServiceServer(s, new(ServerStrct))
 
 	log.Println("Starting server on port: ", addr)
 
 	s.Serve(lis)
 }
 
-func (t *ServerStrct) PetById(ctx context.Context, req *PetByIdRequest) (*PetResponse, error) {
+func (t *ServerStrct) PetById(ctx context.Context, req *rest2grpc.PetByIdRequest) (*rest2grpc.PetResponse, error) {
 
 	fmt.Println("server PetById method called")
 	for _, pet := range petMapArr {
 		if pet.Id == req.Id {
-			return &PetResponse{Pet: &pet}, nil
+			return &rest2grpc.PetResponse{Pet: &pet}, nil
 		}
 	}
 
@@ -241,13 +242,13 @@ func (t *ServerStrct) PetById(ctx context.Context, req *PetByIdRequest) (*PetRes
 
 }
 
-func (t *ServerStrct) UserByName(ctx context.Context, req *UserByNameRequest) (*UserResponse, error) {
+func (t *ServerStrct) UserByName(ctx context.Context, req *rest2grpc.UserByNameRequest) (*rest2grpc.UserResponse, error) {
 
 	fmt.Println("server UserByName method called")
 
 	for _, user := range userMapArr {
 		if req.Username == user.Username {
-			return &UserResponse{User: &user}, nil
+			return &rest2grpc.UserResponse{User: &user}, nil
 		}
 	}
 
@@ -255,7 +256,7 @@ func (t *ServerStrct) UserByName(ctx context.Context, req *UserByNameRequest) (*
 
 }
 
-func (t *ServerStrct) PetPUT(ctx context.Context, req *PetRequest) (*PetResponse, error) {
+func (t *ServerStrct) PetPUT(ctx context.Context, req *rest2grpc.PetRequest) (*rest2grpc.PetResponse, error) {
 
 	fmt.Println("server PetPUT method called")
 	if req.Pet == nil {
@@ -276,10 +277,10 @@ func (t *ServerStrct) PetPUT(ctx context.Context, req *PetRequest) (*PetResponse
 	}
 
 	var pet = petMapArr[req.GetPet().GetId()]
-	return &PetResponse{Pet: &pet}, nil
+	return &rest2grpc.PetResponse{Pet: &pet}, nil
 }
 
-func (t *ServerStrct) UserPUT(ctx context.Context, req *UserRequest) (*UserResponse, error) {
+func (t *ServerStrct) UserPUT(ctx context.Context, req *rest2grpc.UserRequest) (*rest2grpc.UserResponse, error) {
 
 	fmt.Println("server UserPUT method called")
 	if req.User == nil {
@@ -301,5 +302,5 @@ func (t *ServerStrct) UserPUT(ctx context.Context, req *UserRequest) (*UserRespo
 	}
 
 	var user = userMapArr[req.GetUser().GetUsername()]
-	return &UserResponse{User: &user}, nil
+	return &rest2grpc.UserResponse{User: &user}, nil
 }
