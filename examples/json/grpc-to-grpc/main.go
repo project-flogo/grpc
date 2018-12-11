@@ -3,8 +3,6 @@ package main
 import (
 	"flag"
 
-	"github.com/project-flogo/core/engine"
-	"github.com/project-flogo/grpc/examples"
 	"github.com/project-flogo/grpc/proto/grpc2grpc"
 )
 
@@ -24,10 +22,4 @@ func main() {
 		server.Start()
 		return
 	}
-
-	e, err := examples.GRPC2GRPCExample()
-	if err != nil {
-		panic(err)
-	}
-	engine.RunEngine(e)
 }

@@ -1,0 +1,88 @@
+{
+  "name": "MyProxy",
+  "type": "flogo:app",
+  "version": "1.0.0",
+  "description": "This is a simple proxy.",
+  "properties": null,
+  "channels": null,
+  "triggers": [
+    {
+      "name": "flogo-grpc",
+      "id": "MyProxy",
+      "ref": "github.com/project-flogo/grpc/trigger",
+      "settings": {
+        "port": "9096",
+        "protoName": "petstore",
+    		"serviceName": "PetStoreService"
+      },
+      "handlers": [
+        {
+          "settings": {
+            "autoIdReply": false,
+        	  "useReplyHandler": false
+          },
+          "actions": [
+            {
+              "id": "microgateway:PetStoreDispatch"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "microgateway:PetStoreDispatch",
+      "compressed": false,
+      "data": {
+        "name": "Pets",
+        "steps": [
+          {
+            "service": "PetStoregRPCServer",
+            "input": {
+              "grpcMthdParamtrs": "=$.payload.grpcData"
+            }
+          }
+        ],
+        "responses": [
+          {
+            "if": "$.PetStoregRPCServer.outputs.body.error == 'true'",
+            "error": true,
+            "output": {
+              "code": 404,
+              "data": "=$.PetStoregRPCServer.outputs.body.details"
+            }
+          },
+          {
+            "error": false,
+            "output": {
+              "code": 200,
+              "data": "=$.PetStoregRPCServer.outputs.body"
+            }
+          }
+        ],
+        "services": [
+          {
+            "name": "PetStoregRPCServer",
+            "description": "Make calls to sample PetStore gRPC server",
+            "ref": "github.com/project-flogo/grpc/activity",
+            "settings": {
+              "operatingMode": "grpc-to-grpc",
+              "hosturl": "localhost:9000"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "actions": [
+    {
+      "ref": "github.com/project-flogo/microgateway",
+      "settings": {
+        "uri": "microgateway:PetStoreDispatch"
+      },
+      "id": "microgateway:PetStoreDispatch",
+      "metadata": null
+    }
+  ]
+}

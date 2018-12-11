@@ -37,6 +37,8 @@ github.com/project-flogo/core v0.9.0-alpha.3.0.20181105051932-8e2356547b1a h1:nw
 github.com/project-flogo/core v0.9.0-alpha.3.0.20181105051932-8e2356547b1a/go.mod h1:BHeB55AxPhvlNGd+it50rE977ag6xE3bD2RluSDeKBA=
 github.com/project-flogo/microgateway v0.0.0-20181124003442-4c8bde792cf2 h1:Gp99wlt8WMGafFrqy8oROBk9d7Zwx6qdX/nL6EzHwiE=
 github.com/project-flogo/microgateway v0.0.0-20181124003442-4c8bde792cf2/go.mod h1:0+g0n47fz/IRraqrn58fpZ03/yKmHIRtgvIAUxXCTIM=
+github.com/project-flogo/microgateway v0.0.0-20181207233001-fcc59252674f h1:Wkew12GN6+OgGWGeF9jljY8H4Sz40W70jD/0LHFsKL8=
+github.com/project-flogo/microgateway v0.0.0-20181207233001-fcc59252674f/go.mod h1:0+g0n47fz/IRraqrn58fpZ03/yKmHIRtgvIAUxXCTIM=
 github.com/stretchr/objx v0.1.1 h1:2vfRuCMp5sSVIDSqO8oNnWJq7mPa6KVP3iPIwFBuy8A=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.2.2 h1:bSDNvY7ZPG5RlJ8otE/7V6gMiyenm9RtJ7IUVIAoJ1w=
