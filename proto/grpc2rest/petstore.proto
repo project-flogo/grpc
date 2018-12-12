@@ -41,7 +41,7 @@ message UserRequest {
     string phone = 4;
 }
 
-service PetStoreService {
+service GRPC2RestPetStoreService {
     rpc PetById (PetByIdRequest) returns (PetResponse);
     rpc UserByName (UserByNameRequest) returns (UserResponse);
     rpc PetPUT (PetRequest) returns (PetResponse);

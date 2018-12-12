@@ -9,6 +9,7 @@ import (
 
 	"github.com/project-flogo/core/engine"
 	"github.com/project-flogo/grpc/proto/grpc2grpc"
+	"github.com/project-flogo/grpc/proto/grpc2rest"
 	"github.com/project-flogo/grpc/util"
 	"github.com/project-flogo/microgateway/api"
 )
@@ -103,4 +104,57 @@ func TestGRPC2GRPCJSON(t *testing.T) {
 	e, err := engine.New(cfg)
 	assert.Nil(t, err)
 	testGRPC2GRPC(t, e)
+}
+
+func testGRPC2Rest(t *testing.T, e engine.Engine) {
+	defer api.ClearResources()
+
+	util.Drain("9096")
+	err := e.Start()
+	assert.Nil(t, err)
+	defer func() {
+		err := e.Stop()
+		assert.Nil(t, err)
+	}()
+	util.Pour("9096")
+
+	port, method := "9096", "pet"
+	response, err := grpc2rest.CallClient(&port, &method, "2")
+	assert.Nil(t, err)
+	assert.Equal(t, int32(2), response.(*grpc2rest.PetResponse).Pet.Id)
+
+	method = "user"
+	response, err = grpc2rest.CallClient(&port, &method, "user3")
+	assert.Nil(t, err)
+	assert.Equal(t, "user3", response.(*grpc2rest.UserResponse).User.Username)
+
+	method = "petput"
+	response, err = grpc2rest.CallClient(&port, &method, "2,testpet")
+	assert.Nil(t, err)
+	assert.Equal(t, int32(2), response.(*grpc2rest.PetResponse).Pet.Id)
+	assert.Equal(t, "testpet", response.(*grpc2rest.PetResponse).Pet.Name)
+}
+
+func TestGRPC2RestAPI(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping API integration test in short mode")
+	}
+
+	e, err := GRPC2RestExample()
+	assert.Nil(t, err)
+	testGRPC2Rest(t, e)
+}
+
+func TestGRPC2RestJSON(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping JSON integration test in short mode")
+	}
+
+	data, err := ioutil.ReadFile(filepath.FromSlash("./json/grpc-to-rest/flogo.json"))
+	assert.Nil(t, err)
+	cfg, err := engine.LoadAppConfig(string(data), false)
+	assert.Nil(t, err)
+	e, err := engine.New(cfg)
+	assert.Nil(t, err)
+	testGRPC2Rest(t, e)
 }
