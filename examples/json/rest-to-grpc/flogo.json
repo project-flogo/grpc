@@ -1,0 +1,154 @@
+{
+  "name": "MyProxy",
+  "type": "flogo:app",
+  "version": "1.0.0",
+  "description": "This is a simple proxy.",
+  "properties": null,
+  "channels": null,
+  "triggers": [
+    {
+      "name": "flogo-grpc",
+      "id": "MyProxy",
+      "ref": "github.com/project-flogo/contrib/trigger/rest",
+      "settings": {
+        "port": "9096"
+      },
+      "handlers": [
+        {
+          "settings": {
+            "method": "GET",
+            "path": "/petstore/method/:grpcMethodName"
+          },
+          "actions": [
+            {
+              "id": "microgateway:PetStoreGETDispatch"
+            }
+          ]
+        },
+        {
+          "settings": {
+            "method": "PUT",
+            "path": "/petstore/PetPUT"
+          },
+          "actions": [
+            {
+              "id": "microgateway:PetStorePUTDispatch"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "microgateway:PetStoreGETDispatch",
+      "compressed": false,
+      "data": {
+        "name": "Pets",
+        "steps": [
+          {
+            "service": "PetStore",
+            "input": {
+              "protoName": "petstore",
+              "serviceName": "Rest2GRPCPetStoreService",
+              "methodName": "=$.payload.pathParams.grpcMethodName",
+              "queryParams": "=$.payload.queryParams"
+            }
+          }
+        ],
+        "responses": [
+          {
+            "if": "$.PetStore.outputs.body.error == 'true'",
+            "error": true,
+            "output": {
+              "code": 404,
+              "data": "=$.PetStore.outputs.body.details"
+            }
+          },
+          {
+            "error": false,
+            "output": {
+              "code": 200,
+              "data": "=$.PetStore.outputs.body"
+            }
+          }
+        ],
+        "services": [
+          {
+            "name": "PetStore",
+            "description": "Make calls to PetStore grpc end point",
+            "ref": "github.com/project-flogo/grpc/activity",
+            "settings": {
+              "operatingMode": "rest-to-grpc",
+              "hosturl": "localhost:9000"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "microgateway:PetStorePUTDispatch",
+      "compressed": false,
+      "data": {
+        "name": "Pets",
+        "steps": [
+          {
+            "service": "PetStore",
+            "input": {
+              "protoName": "petstore",
+              "serviceName": "Rest2GRPCPetStoreService",
+              "methodName": "PetPUT",
+              "content": "=$.payload.content"
+            }
+          }
+        ],
+        "responses": [
+          {
+            "if": "$.PetStore.outputs.body.error == 'true'",
+            "error": true,
+            "output": {
+              "code": 404,
+              "data": "=$.PetStore.outputs.body.details"
+            }
+          },
+          {
+            "error": false,
+            "output": {
+              "code": 200,
+              "data": "=$.PetStore.outputs.body"
+            }
+          }
+        ],
+        "services": [
+          {
+            "name": "PetStore",
+            "description": "Make calls to PetStore grpc end point",
+            "ref": "github.com/project-flogo/grpc/activity",
+            "settings": {
+              "operatingMode": "rest-to-grpc",
+              "hosturl": "localhost:9000"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "actions": [
+    {
+      "ref": "github.com/project-flogo/microgateway",
+      "settings": {
+        "uri": "microgateway:PetStoreGETDispatch"
+      },
+      "id": "microgateway:PetStoreGETDispatch",
+      "metadata": null
+    },
+    {
+      "ref": "github.com/project-flogo/microgateway",
+      "settings": {
+        "uri": "microgateway:PetStorePUTDispatch"
+      },
+      "id": "microgateway:PetStorePUTDispatch",
+      "metadata": null
+    }
+  ]
+}

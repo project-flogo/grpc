@@ -2,6 +2,7 @@ package examples
 
 import (
 	"github.com/project-flogo/contrib/activity/rest"
+	resttrigger "github.com/project-flogo/contrib/trigger/rest"
 	"github.com/project-flogo/core/api"
 	"github.com/project-flogo/core/engine"
 	"github.com/project-flogo/grpc/activity"
@@ -179,6 +180,82 @@ func GRPC2RestExample() (engine.Engine, error) {
 		return nil, err
 	}
 	_, err = handler.NewAction(action, userByNameDispatch)
+	if err != nil {
+		return nil, err
+	}
+
+	return api.NewEngine(app)
+}
+
+func Rest2GRPCExample() (engine.Engine, error) {
+	app := api.NewApp()
+
+	gateway := microapi.New("PetStoreGETDispatch")
+	service := gateway.NewService("PetStore", &activity.Activity{})
+	service.SetDescription("Make calls to PetStore grpc end point")
+	service.AddSetting("operatingMode", "rest-to-grpc")
+	service.AddSetting("hosturl", "localhost:9000")
+	step := gateway.NewStep(service)
+	step.AddInput("protoName", "petstore")
+	step.AddInput("serviceName", "Rest2GRPCPetStoreService")
+	step.AddInput("methodName", "=$.payload.pathParams.grpcMethodName")
+	step.AddInput("queryParams", "=$.payload.queryParams")
+	response := gateway.NewResponse(true)
+	response.SetIf("$.PetStore.outputs.body.error == 'true'")
+	response.SetCode(404)
+	response.SetData("=$.PetStore.outputs.body.details")
+	response = gateway.NewResponse(false)
+	response.SetCode(200)
+	response.SetData("=$.PetStore.outputs.body")
+	PetStoreGETDispatch, err := gateway.AddResource(app)
+	if err != nil {
+		return nil, err
+	}
+
+	gateway = microapi.New("PetStorePUTDispatch")
+	service = gateway.NewService("PetStore", &activity.Activity{})
+	service.SetDescription("Make calls to PetStore grpc end point")
+	service.AddSetting("operatingMode", "rest-to-grpc")
+	service.AddSetting("hosturl", "localhost:9000")
+	step = gateway.NewStep(service)
+	step.AddInput("protoName", "petstore")
+	step.AddInput("serviceName", "Rest2GRPCPetStoreService")
+	step.AddInput("methodName", "PetPUT")
+	step.AddInput("content", "=$.payload.content")
+	response = gateway.NewResponse(true)
+	response.SetIf("$.PetStore.outputs.body.error == 'true'")
+	response.SetCode(404)
+	response.SetData("=$.PetStore.outputs.body.details")
+	response = gateway.NewResponse(false)
+	response.SetCode(200)
+	response.SetData("=$.PetStore.outputs.body")
+	PetStorePUTDispatch, err := gateway.AddResource(app)
+	if err != nil {
+		return nil, err
+	}
+
+	trg := app.NewTrigger(&resttrigger.Trigger{}, &resttrigger.Settings{Port: 9096})
+
+	handler, err := trg.NewHandler(&resttrigger.HandlerSettings{
+		Method: "GET",
+		Path:   "/petstore/method/:grpcMethodName",
+	})
+	if err != nil {
+		return nil, err
+	}
+	_, err = handler.NewAction(&microgateway.Action{}, PetStoreGETDispatch)
+	if err != nil {
+		return nil, err
+	}
+
+	handler, err = trg.NewHandler(&resttrigger.HandlerSettings{
+		Method: "PUT",
+		Path:   "/petstore/PetPUT",
+	})
+	if err != nil {
+		return nil, err
+	}
+	_, err = handler.NewAction(&microgateway.Action{}, PetStorePUTDispatch)
 	if err != nil {
 		return nil, err
 	}

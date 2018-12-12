@@ -1,7 +1,10 @@
 package examples
 
 import (
+	"bytes"
+	"encoding/json"
 	"io/ioutil"
+	"net/http"
 	"path/filepath"
 	"testing"
 
@@ -10,6 +13,7 @@ import (
 	"github.com/project-flogo/core/engine"
 	"github.com/project-flogo/grpc/proto/grpc2grpc"
 	"github.com/project-flogo/grpc/proto/grpc2rest"
+	"github.com/project-flogo/grpc/proto/rest2grpc"
 	"github.com/project-flogo/grpc/util"
 	"github.com/project-flogo/microgateway/api"
 )
@@ -119,9 +123,9 @@ func testGRPC2Rest(t *testing.T, e engine.Engine) {
 	util.Pour("9096")
 
 	port, method := "9096", "pet"
-	response, err := grpc2rest.CallClient(&port, &method, "2")
+	response, err := grpc2rest.CallClient(&port, &method, "3")
 	assert.Nil(t, err)
-	assert.Equal(t, int32(2), response.(*grpc2rest.PetResponse).Pet.Id)
+	assert.Equal(t, int32(3), response.(*grpc2rest.PetResponse).Pet.Id)
 
 	method = "user"
 	response, err = grpc2rest.CallClient(&port, &method, "user3")
@@ -157,4 +161,97 @@ func TestGRPC2RestJSON(t *testing.T) {
 	e, err := engine.New(cfg)
 	assert.Nil(t, err)
 	testGRPC2Rest(t, e)
+}
+
+func testRest2GRPC(t *testing.T, e engine.Engine) {
+	defer api.ClearResources()
+	util.Drain("9000")
+	server, err := rest2grpc.CallServer()
+	assert.Nil(t, err)
+	go func() {
+		server.Start()
+	}()
+	util.Pour("9000")
+	defer server.Server.Stop()
+
+	util.Drain("9096")
+	err = e.Start()
+	assert.Nil(t, err)
+	defer func() {
+		err := e.Stop()
+		assert.Nil(t, err)
+	}()
+	util.Pour("9096")
+
+	transport := &http.Transport{
+		MaxIdleConns: 1,
+	}
+	defer transport.CloseIdleConnections()
+	client := &http.Client{
+		Transport: transport,
+	}
+
+	req, err := http.NewRequest(http.MethodGet, "http://localhost:9096/petstore/method/PetById?id=2", nil)
+	assert.Nil(t, err)
+	response, err := client.Do(req)
+	assert.Nil(t, err)
+	body, err := ioutil.ReadAll(response.Body)
+	assert.Nil(t, err)
+	response.Body.Close()
+	var pet rest2grpc.PetResponse
+	err = json.Unmarshal(body, &pet)
+	assert.Nil(t, err)
+	assert.Equal(t, int32(2), pet.Pet.Id)
+	assert.Equal(t, "cat2", pet.Pet.Name)
+
+	req, err = http.NewRequest(http.MethodGet, "http://localhost:9096/petstore/method/UserByName?username=user2", nil)
+	assert.Nil(t, err)
+	response, err = client.Do(req)
+	assert.Nil(t, err)
+	body, err = ioutil.ReadAll(response.Body)
+	assert.Nil(t, err)
+	response.Body.Close()
+	var user rest2grpc.UserResponse
+	err = json.Unmarshal(body, &user)
+	assert.Nil(t, err)
+	assert.Equal(t, int32(2), user.User.Id)
+	assert.Equal(t, "user2", user.User.Username)
+
+	payload := `{"pet": {"id": 12,"name": "mycat12"}}`
+	req, err = http.NewRequest(http.MethodPut, "http://localhost:9096/petstore/PetPUT", bytes.NewReader([]byte(payload)))
+	assert.Nil(t, err)
+	req.Header.Add("Content-Type", "application/json")
+	response, err = client.Do(req)
+	assert.Nil(t, err)
+	body, err = ioutil.ReadAll(response.Body)
+	assert.Nil(t, err)
+	response.Body.Close()
+	err = json.Unmarshal(body, &pet)
+	assert.Nil(t, err)
+	assert.Equal(t, int32(12), pet.Pet.Id)
+	assert.Equal(t, "mycat12", pet.Pet.Name)
+}
+
+func TestRest2GRPCAPI(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping API integration test in short mode")
+	}
+
+	e, err := Rest2GRPCExample()
+	assert.Nil(t, err)
+	testRest2GRPC(t, e)
+}
+
+func TestRest2GRPCJSON(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping JSON integration test in short mode")
+	}
+
+	data, err := ioutil.ReadFile(filepath.FromSlash("./json/rest-to-grpc/flogo.json"))
+	assert.Nil(t, err)
+	cfg, err := engine.LoadAppConfig(string(data), false)
+	assert.Nil(t, err)
+	e, err := engine.New(cfg)
+	assert.Nil(t, err)
+	testRest2GRPC(t, e)
 }

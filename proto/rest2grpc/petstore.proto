@@ -37,7 +37,7 @@ message UserRequest {
     User user = 1;
 }
 
-service PetStoreService {
+service Rest2GRPCPetStoreService {
     rpc PetById (PetByIdRequest) returns (PetResponse);
     rpc UserByName (UserByNameRequest) returns (UserResponse);
     rpc PetPUT (PetRequest) returns (PetResponse);
