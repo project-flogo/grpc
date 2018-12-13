@@ -75,7 +75,6 @@ func (t *Trigger) Metadata() *trigger.Metadata {
 
 // Initialize implements trigger.Trigger.Initialize
 func (t *Trigger) Initialize(ctx trigger.InitContext) error {
-	fmt.Println("Initialize", ctx)
 	logger := ctx.Logger()
 	t.logger = logger
 
