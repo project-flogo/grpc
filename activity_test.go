@@ -240,7 +240,7 @@ func TestGRPC(t *testing.T) {
 		t.Fatal(err)
 	}
 	server := grpc.NewServer()
-	rest2grpc.RegisterPetStoreServiceServer(server, &ServerStrct{})
+	rest2grpc.RegisterRest2GRPCPetStoreServiceServer(server, &ServerStrct{})
 
 	done := make(chan bool, 1)
 	go func() {
@@ -262,7 +262,7 @@ func TestGRPC(t *testing.T) {
 		"methodName":  "PetById",
 		"contextdata": context.Background(),
 		"reqdata":     &rest2grpc.PetByIdRequest{Id: 2},
-		"serviceName": "PetStoreService",
+		"serviceName": "Rest2GRPCPetStoreService",
 		"protoName":   "petstore",
 	}
 	ctx := newActivityContext(map[string]interface{}{
@@ -286,7 +286,7 @@ func TestGRPC(t *testing.T) {
 
 	ctx = newActivityContext(map[string]interface{}{
 		"protoName":   "petstore",
-		"serviceName": "PetStoreService",
+		"serviceName": "Rest2GRPCPetStoreService",
 		"methodName":  "PetById",
 		"queryParams": map[string]string{
 			"id": "2",
