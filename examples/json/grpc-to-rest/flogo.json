@@ -18,8 +18,6 @@
       "handlers": [
         {
           "settings": {
-            "autoIdReply": false,
-        	  "useReplyHandler": false,
             "methodName": "PetById"
           },
           "actions": [
@@ -30,8 +28,6 @@
         },
         {
           "settings": {
-            "autoIdReply": false,
-            "useReplyHandler": false,
             "methodName": "PetPUT"
           },
           "actions": [
@@ -42,8 +38,6 @@
         },
         {
           "settings": {
-            "autoIdReply": false,
-            "useReplyHandler": false,
             "methodName": "UserByName"
           },
           "actions": [

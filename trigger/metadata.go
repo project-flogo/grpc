@@ -14,8 +14,6 @@ type Settings struct {
 }
 
 type HandlerSettings struct {
-	AutoIdReply     bool   `md:"autoIdReply"`
-	UseReplyHandler bool   `md:"useReplyHandler"`
 	MethodName      string `md:"methodName"`
 }
 

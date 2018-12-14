@@ -40,10 +40,7 @@ func GRPC2GRPCExample() (engine.Engine, error) {
 	}
 	trg := app.NewTrigger(&trigger.Trigger{}, triggerSettings)
 
-	handler, err := trg.NewHandler(&trigger.HandlerSettings{
-		AutoIdReply:     false,
-		UseReplyHandler: false,
-	})
+	handler, err := trg.NewHandler(&trigger.HandlerSettings{})
 	if err != nil {
 		return nil, err
 	}
@@ -146,8 +143,6 @@ func GRPC2RestExample() (engine.Engine, error) {
 	action := &microgateway.Action{}
 
 	handler, err := trg.NewHandler(&trigger.HandlerSettings{
-		AutoIdReply:     false,
-		UseReplyHandler: false,
 		MethodName:      "PetById",
 	})
 	if err != nil {
@@ -159,8 +154,6 @@ func GRPC2RestExample() (engine.Engine, error) {
 	}
 
 	handler, err = trg.NewHandler(&trigger.HandlerSettings{
-		AutoIdReply:     false,
-		UseReplyHandler: false,
 		MethodName:      "PetPUT",
 	})
 	if err != nil {
@@ -172,8 +165,6 @@ func GRPC2RestExample() (engine.Engine, error) {
 	}
 
 	handler, err = trg.NewHandler(&trigger.HandlerSettings{
-		AutoIdReply:     false,
-		UseReplyHandler: false,
 		MethodName:      "UserByName",
 	})
 	if err != nil {

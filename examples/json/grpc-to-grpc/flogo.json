@@ -17,10 +17,7 @@
       },
       "handlers": [
         {
-          "settings": {
-            "autoIdReply": false,
-        	  "useReplyHandler": false
-          },
+          "settings": {},
           "actions": [
             {
               "id": "microgateway:PetStoreDispatch"
