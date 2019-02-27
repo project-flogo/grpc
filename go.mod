@@ -8,5 +8,5 @@ require (
 	github.com/project-flogo/microgateway v0.0.0-20190227190420-f90ab84ef11f
 	github.com/stretchr/testify v1.2.2
 	golang.org/x/net v0.0.0-20190227160552-c95aed5357e7
-	google.golang.org/grpc v1.19.0
+	google.golang.org/grpc v1.2.1-0.20190227180446-5878d965b223
 )
