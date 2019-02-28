@@ -9,4 +9,5 @@ require (
 	github.com/stretchr/testify v1.2.2
 	golang.org/x/net v0.0.0-20190227160552-c95aed5357e7
 	google.golang.org/grpc v1.2.1-0.20190227180446-5878d965b223
+	gopkg.in/yaml.v2 v2.2.2 // indirect
 )
