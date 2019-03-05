@@ -21,7 +21,7 @@ Create the gateway:
 ```bash
 flogo create -f flogo.json
 cd MyProxy
-flogo install github.com/project-flogo/proto/grpc2grpc
+flogo install github.com/project-flogo/grpc/proto/grpc2grpc
 flogo build
 ```
 
