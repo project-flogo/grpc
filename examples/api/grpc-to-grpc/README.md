@@ -14,7 +14,7 @@ go build
 ## Testing
 Start proxy gateway:
 ```bash
-./grpc-to-grpc
+FLOGO_RUNNER_TYPE=DIRECT ./grpc-to-grpc
 ```
 
 Start sample gRPC server.

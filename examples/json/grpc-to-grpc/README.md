@@ -28,7 +28,7 @@ flogo build
 ## Testing
 Start proxy gateway.
 ```bash
-bin/MyProxy
+FLOGO_RUNNER_TYPE=DIRECT bin/MyProxy
 ```
 
 Start sample gRPC server.
