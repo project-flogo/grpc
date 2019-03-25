@@ -122,21 +122,21 @@ func testGRPC2Rest(t *testing.T, e engine.Engine) {
 	}()
 	util.Pour("9096")
 
-	port, method := "9096", "pet"
-	response, err := grpc2rest.CallClient(&port, &method, "3")
+	port, method := "9096", "petput"
+	response, err := grpc2rest.CallClient(&port, &method, "123124126,testpet")
 	assert.Nil(t, err)
-	assert.Equal(t, int32(3), response.(*grpc2rest.PetResponse).Pet.Id)
+	assert.Equal(t, int32(123124126), response.(*grpc2rest.PetResponse).Pet.Id)
+	assert.Equal(t, "testpet", response.(*grpc2rest.PetResponse).Pet.Name)
+
+	method = "pet"
+	response, err = grpc2rest.CallClient(&port, &method, "123124126")
+	assert.Nil(t, err)
+	assert.Equal(t, int32(123124126), response.(*grpc2rest.PetResponse).Pet.Id)
 
 	method = "user"
-	response, err = grpc2rest.CallClient(&port, &method, "user3")
+	response, err = grpc2rest.CallClient(&port, &method, "user123124126")
 	assert.Nil(t, err)
-	assert.Equal(t, "user3", response.(*grpc2rest.UserResponse).User.Username)
-
-	method = "petput"
-	response, err = grpc2rest.CallClient(&port, &method, "2,testpet")
-	assert.Nil(t, err)
-	assert.Equal(t, int32(2), response.(*grpc2rest.PetResponse).Pet.Id)
-	assert.Equal(t, "testpet", response.(*grpc2rest.PetResponse).Pet.Name)
+	assert.Equal(t, "user123124126", response.(*grpc2rest.UserResponse).User.Username)
 }
 
 func TestGRPC2RestAPI(t *testing.T) {
