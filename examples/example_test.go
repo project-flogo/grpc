@@ -3,11 +3,13 @@ package examples
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/project-flogo/core/engine"
@@ -122,21 +124,56 @@ func testGRPC2Rest(t *testing.T, e engine.Engine) {
 	}()
 	util.Pour("9096")
 
+	server := &http.Server{Addr: ":8181"}
+	r := mux.NewRouter()
+	r.HandleFunc("/pet/{id}", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		petJSONPayload := "{\n \"Name\": \"testpet\" , \"Id\": 2 \n}"
+		io.WriteString(w, petJSONPayload)
+	})
+	r.HandleFunc("/pet", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		petJSONPayload := "{\n \"name\": \"testpet\" , \"id\": 3 \n}"
+		io.WriteString(w, petJSONPayload)
+	})
+	r.HandleFunc("/user/{username}", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		userJSONPayload := "{\n \"username\": \"testuser\", \"id\": 2  \n}"
+		io.WriteString(w, userJSONPayload)
+	})
+	done := make(chan bool, 1)
+	go func() {
+		server.Handler = r
+		server.ListenAndServe()
+		done <- true
+	}()
+	_, err = http.Get("http://localhost:8181/pet/1")
+	for err != nil {
+		_, err = http.Get("http://localhost:8181/pet/1")
+	}
+	defer func() {
+		err := server.Shutdown(nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		<-done
+	}()
+
 	port, method := "9096", "petput"
-	response, err := grpc2rest.CallClient(&port, &method, "123124126,testpet")
+	response, err := grpc2rest.CallClient(&port, &method, "3,testpet")
 	assert.Nil(t, err)
-	assert.Equal(t, int32(123124126), response.(*grpc2rest.PetResponse).Pet.Id)
+	assert.Equal(t, int32(3), response.(*grpc2rest.PetResponse).Pet.Id)
 	assert.Equal(t, "testpet", response.(*grpc2rest.PetResponse).Pet.Name)
 
 	method = "pet"
-	response, err = grpc2rest.CallClient(&port, &method, "123124126")
+	response, err = grpc2rest.CallClient(&port, &method, "2")
 	assert.Nil(t, err)
-	assert.Equal(t, int32(123124126), response.(*grpc2rest.PetResponse).Pet.Id)
+	assert.Equal(t, int32(2), response.(*grpc2rest.PetResponse).Pet.Id)
 
 	method = "user"
-	response, err = grpc2rest.CallClient(&port, &method, "user123124126")
+	response, err = grpc2rest.CallClient(&port, &method, "testuser")
 	assert.Nil(t, err)
-	assert.Equal(t, "user123124126", response.(*grpc2rest.UserResponse).User.Username)
+	assert.Equal(t, "testuser", response.(*grpc2rest.UserResponse).User.Username)
 }
 
 func TestGRPC2RestAPI(t *testing.T) {
