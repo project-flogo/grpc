@@ -91,7 +91,7 @@
             "description": "Make calls to find pets",
             "ref": "github.com/project-flogo/contrib/activity/rest",
             "settings": {
-              "uri": "http://petstore.swagger.io/v2/pet/:id",
+              "uri": "http://localhost:8181/pet/:id",
               "method": "GET"
             }
           }
@@ -139,7 +139,7 @@
             "description": "Make calls to petstore",
             "ref": "github.com/project-flogo/contrib/activity/rest",
             "settings": {
-              "uri": "http://petstore.swagger.io/v2/pet",
+              "uri": "http://localhost:8181/pet",
               "method": "PUT",
               "headers": {
                 "Content-Type": "application/json"
@@ -190,7 +190,7 @@
             "description": "Make calls to find users",
             "ref": "github.com/project-flogo/contrib/activity/rest",
             "settings": {
-              "uri": "http://petstore.swagger.io/v2/user/:username",
+              "uri": "http://localhost:8181/user/:username",
               "method": "GET"
             }
           }
