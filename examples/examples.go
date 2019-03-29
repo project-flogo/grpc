@@ -11,15 +11,7 @@ import (
 	microapi "github.com/project-flogo/microgateway/api"
 )
 
-var endURL string
-
-func init() {
-	endURL = "http://petstore.swagger.io/v2"
-}
-
-func setEndURL(url string) {
-	endURL = url
-}
+var petStoreURL = "http://petstore.swagger.io/v2"
 
 func GRPC2GRPCExample() (engine.Engine, error) {
 	app := api.NewApp()
@@ -73,7 +65,7 @@ func GRPC2RestExample() (engine.Engine, error) {
 	gateway := microapi.New("petByIdDispatch")
 	service := gateway.NewService("PetStorePets", &rest.Activity{})
 	service.SetDescription("Make calls to find pets")
-	service.AddSetting("uri", endURL+"/pet/:id")
+	service.AddSetting("uri", petStoreURL+"/pet/:id")
 	service.AddSetting("method", "GET")
 	step := gateway.NewStep(service)
 	step.AddInput("pathParams.id", "=$.payload.params.Id")
@@ -97,7 +89,7 @@ func GRPC2RestExample() (engine.Engine, error) {
 	gateway = microapi.New("petPutDispatch")
 	service = gateway.NewService("PetStorePetsPUT", &rest.Activity{})
 	service.SetDescription("Make calls to petstore")
-	service.AddSetting("uri", endURL+"/pet")
+	service.AddSetting("uri", petStoreURL+"/pet")
 	service.AddSetting("method", "PUT")
 	service.AddSetting("headers", map[string]string{"Content-Type": "application/json"})
 	step = gateway.NewStep(service)
@@ -122,7 +114,7 @@ func GRPC2RestExample() (engine.Engine, error) {
 	gateway = microapi.New("userByNameDispatch")
 	service = gateway.NewService("PetStoreUsersByName", &rest.Activity{})
 	service.SetDescription("Make calls to find users")
-	service.AddSetting("uri", endURL+"/user/:username")
+	service.AddSetting("uri", petStoreURL+"/user/:username")
 	service.AddSetting("method", "GET")
 	step = gateway.NewStep(service)
 	step.AddInput("pathParams.username", "=$.payload.params.Username")

@@ -181,7 +181,7 @@ func TestGRPC2RestAPI(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping API integration test in short mode")
 	}
-	setEndURL("http://localhost:8181")
+	petStoreURL = "http://localhost:8181"
 	e, err := GRPC2RestExample()
 	assert.Nil(t, err)
 	testGRPC2Rest(t, e)
