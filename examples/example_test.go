@@ -3,11 +3,13 @@ package examples
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/project-flogo/core/engine"
@@ -122,6 +124,42 @@ func testGRPC2Rest(t *testing.T, e engine.Engine) {
 	}()
 	util.Pour("9096")
 
+	// setting up sample server on 8181 port
+	server := &http.Server{Addr: ":8181"}
+	r := mux.NewRouter()
+	r.HandleFunc("/pet/{id}", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		petJSONPayload := "{\n \"Name\": \"testpet\" , \"id\": 3 \n}"
+		io.WriteString(w, petJSONPayload)
+	})
+	r.HandleFunc("/pet", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		petJSONPayload := "{\n \"name\": \"testpet\" , \"id\": 2 \n}"
+		io.WriteString(w, petJSONPayload)
+	})
+	r.HandleFunc("/user/{username}", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		userJSONPayload := "{\n \"username\": \"user3\", \"id\": 3  \n}"
+		io.WriteString(w, userJSONPayload)
+	})
+	done := make(chan bool, 1)
+	go func() {
+		server.Handler = r
+		server.ListenAndServe()
+		done <- true
+	}()
+	_, err = http.Get("http://localhost:8181/pet/json")
+	for err != nil {
+		_, err = http.Get("http://localhost:8181/pet/json")
+	}
+	defer func() {
+		err := server.Shutdown(nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		<-done
+	}()
+
 	port, method := "9096", "pet"
 	response, err := grpc2rest.CallClient(&port, &method, "3")
 	assert.Nil(t, err)
@@ -143,7 +181,7 @@ func TestGRPC2RestAPI(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping API integration test in short mode")
 	}
-
+	setEndURL("http://localhost:8181")
 	e, err := GRPC2RestExample()
 	assert.Nil(t, err)
 	testGRPC2Rest(t, e)
@@ -154,9 +192,7 @@ func TestGRPC2RestJSON(t *testing.T) {
 		t.Skip("skipping JSON integration test in short mode")
 	}
 
-	data, err := ioutil.ReadFile(filepath.FromSlash("./json/grpc-to-rest/flogo.json"))
-	assert.Nil(t, err)
-	cfg, err := engine.LoadAppConfig(string(data), false)
+	cfg, err := engine.LoadAppConfig(grpcToRestJSON, false)
 	assert.Nil(t, err)
 	e, err := engine.New(cfg)
 	assert.Nil(t, err)
@@ -255,3 +291,233 @@ func TestRest2GRPCJSON(t *testing.T) {
 	assert.Nil(t, err)
 	testRest2GRPC(t, e)
 }
+
+const grpcToRestJSON = `
+{
+	"name": "MyProxy",
+	"type": "flogo:app",
+	"version": "1.0.0",
+	"description": "This is a simple proxy.",
+	"properties": null,
+	"channels": null,
+	"triggers": [
+	  {
+		"name": "flogo-grpc",
+		"id": "MyProxy",
+		"ref": "github.com/project-flogo/grpc/trigger",
+		"settings": {
+		  "port": "9096",
+		  "protoName": "petstore",
+			  "serviceName": "GRPC2RestPetStoreService"
+		},
+		"handlers": [
+		  {
+			"settings": {
+			  "methodName": "PetById"
+			},
+			"actions": [
+			  {
+				"id": "microgateway:petByIdDispatch"
+			  }
+			]
+		  },
+		  {
+			"settings": {
+			  "methodName": "PetPUT"
+			},
+			"actions": [
+			  {
+				"id": "microgateway:petPutDispatch"
+			  }
+			]
+		  },
+		  {
+			"settings": {
+			  "methodName": "UserByName"
+			},
+			"actions": [
+			  {
+				"id": "microgateway:userByNameDispatch"
+			  }
+			]
+		  }
+		]
+	  }
+	],
+	"resources": [
+	  {
+		"id": "microgateway:petByIdDispatch",
+		"compressed": false,
+		"data": {
+		  "name": "Pets",
+		  "steps": [
+			{
+			  "service": "PetStorePets",
+			  "input": {
+				"pathParams.id": "=$.payload.params.Id"
+			  }
+			}
+		  ],
+		  "responses": [
+			{
+			  "if": "$.PetStorePets.outputs.data.type == 'error'",
+			  "error": true,
+			  "output": {
+				"code": 404,
+				"data": {
+				  "error": "=$.PetStorePets.outputs.data.message"
+				}
+			  }
+			},
+			{
+			  "if": "$.PetStorePets.outputs.data.type != 'error'",
+			  "error": false,
+			  "output": {
+				"code": 200,
+				"data": {
+				  "pet": "=$.PetStorePets.outputs.data"
+				}
+			  }
+			}
+		  ],
+		  "services": [
+			{
+			  "name": "PetStorePets",
+			  "description": "Make calls to find pets",
+			  "ref": "github.com/project-flogo/contrib/activity/rest",
+			  "settings": {
+				"uri": "http://localhost:8181/pet/:id",
+				"method": "GET"
+			  }
+			}
+		  ]
+		}
+	  },
+	  {
+		"id": "microgateway:petPutDispatch",
+		"compressed": false,
+		"data": {
+		  "name": "Pets",
+		  "steps": [
+			{
+			  "service": "PetStorePetsPUT",
+			  "input": {
+				"content": "=$.payload.content"
+			  }
+			}
+		  ],
+		  "responses": [
+			{
+			  "if": "$.PetStorePetsPUT.outputs.data.type == 'error'",
+			  "error": true,
+			  "output": {
+				"code": 404,
+				"data": {
+				  "error": "=$.PetStorePetsPUT.outputs.data.message"
+				}
+			  }
+			},
+			{
+			  "if": "$.PetStorePetsPUT.outputs.data.type != 'error'",
+			  "error": false,
+			  "output": {
+				"code": 200,
+				"data": {
+				  "pet": "=$.PetStorePetsPUT.outputs.data"
+				}
+			  }
+			}
+		  ],
+		  "services": [
+			{
+			  "name": "PetStorePetsPUT",
+			  "description": "Make calls to petstore",
+			  "ref": "github.com/project-flogo/contrib/activity/rest",
+			  "settings": {
+				"uri": "http://localhost:8181/pet",
+				"method": "PUT",
+				"headers": {
+				  "Content-Type": "application/json"
+				}
+			  }
+			}
+		  ]
+		}
+	  },
+	  {
+		"id": "microgateway:userByNameDispatch",
+		"compressed": false,
+		"data": {
+		  "name": "Pets",
+		  "steps": [
+			{
+			  "service": "PetStoreUsersByName",
+			  "input": {
+				"pathParams.username": "=$.payload.params.Username"
+			  }
+			}
+		  ],
+		  "responses": [
+			{
+			  "if": "$.PetStoreUsersByName.outputs.data.type == 'error'",
+			  "error": true,
+			  "output": {
+				"code": 404,
+				"data": {
+				  "error": "=$.PetStoreUsersByName.outputs.data.message"
+				}
+			  }
+			},
+			{
+			  "if": "$.PetStoreUsersByName.outputs.data.type != 'error'",
+			  "error": false,
+			  "output": {
+				"code": 200,
+				"data": {
+				  "user": "=$.PetStoreUsersByName.outputs.data"
+				}
+			  }
+			}
+		  ],
+		  "services": [
+			{
+			  "name": "PetStoreUsersByName",
+			  "description": "Make calls to find users",
+			  "ref": "github.com/project-flogo/contrib/activity/rest",
+			  "settings": {
+				"uri": "http://localhost:8181/user/:username",
+				"method": "GET"
+			  }
+			}
+		  ]
+		}
+	  }
+	],
+	"actions": [
+	  {
+		"ref": "github.com/project-flogo/microgateway",
+		"settings": {
+		  "uri": "microgateway:petByIdDispatch"
+		},
+		"id": "microgateway:petByIdDispatch",
+		"metadata": null
+	  },
+	  {
+		"ref": "github.com/project-flogo/microgateway",
+		"settings": {
+		  "uri": "microgateway:petPutDispatch"
+		},
+		"id": "microgateway:petPutDispatch",
+		"metadata": null
+	  },
+	  {
+		"ref": "github.com/project-flogo/microgateway",
+		"settings": {
+		  "uri": "microgateway:userByNameDispatch"
+		},
+		"id": "microgateway:userByNameDispatch",
+		"metadata": null
+	  }
+	]
+  }
+  `
