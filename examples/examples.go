@@ -11,6 +11,8 @@ import (
 	microapi "github.com/project-flogo/microgateway/api"
 )
 
+var petStoreURL = "http://petstore.swagger.io/v2"
+
 func GRPC2GRPCExample() (engine.Engine, error) {
 	app := api.NewApp()
 
@@ -63,7 +65,7 @@ func GRPC2RestExample() (engine.Engine, error) {
 	gateway := microapi.New("petByIdDispatch")
 	service := gateway.NewService("PetStorePets", &rest.Activity{})
 	service.SetDescription("Make calls to find pets")
-	service.AddSetting("uri", "http://petstore.swagger.io/v2/pet/:id")
+	service.AddSetting("uri", petStoreURL+"/pet/:id")
 	service.AddSetting("method", "GET")
 	step := gateway.NewStep(service)
 	step.AddInput("pathParams.id", "=$.payload.params.Id")
@@ -87,7 +89,7 @@ func GRPC2RestExample() (engine.Engine, error) {
 	gateway = microapi.New("petPutDispatch")
 	service = gateway.NewService("PetStorePetsPUT", &rest.Activity{})
 	service.SetDescription("Make calls to petstore")
-	service.AddSetting("uri", "http://petstore.swagger.io/v2/pet")
+	service.AddSetting("uri", petStoreURL+"/pet")
 	service.AddSetting("method", "PUT")
 	service.AddSetting("headers", map[string]string{"Content-Type": "application/json"})
 	step = gateway.NewStep(service)
@@ -112,7 +114,7 @@ func GRPC2RestExample() (engine.Engine, error) {
 	gateway = microapi.New("userByNameDispatch")
 	service = gateway.NewService("PetStoreUsersByName", &rest.Activity{})
 	service.SetDescription("Make calls to find users")
-	service.AddSetting("uri", "http://petstore.swagger.io/v2/user/:username")
+	service.AddSetting("uri", petStoreURL+"/user/:username")
 	service.AddSetting("method", "GET")
 	step = gateway.NewStep(service)
 	step.AddInput("pathParams.username", "=$.payload.params.Username")
@@ -143,7 +145,7 @@ func GRPC2RestExample() (engine.Engine, error) {
 	action := &microgateway.Action{}
 
 	handler, err := trg.NewHandler(&trigger.HandlerSettings{
-		MethodName:      "PetById",
+		MethodName: "PetById",
 	})
 	if err != nil {
 		return nil, err
@@ -154,7 +156,7 @@ func GRPC2RestExample() (engine.Engine, error) {
 	}
 
 	handler, err = trg.NewHandler(&trigger.HandlerSettings{
-		MethodName:      "PetPUT",
+		MethodName: "PetPUT",
 	})
 	if err != nil {
 		return nil, err
@@ -165,7 +167,7 @@ func GRPC2RestExample() (engine.Engine, error) {
 	}
 
 	handler, err = trg.NewHandler(&trigger.HandlerSettings{
-		MethodName:      "UserByName",
+		MethodName: "UserByName",
 	})
 	if err != nil {
 		return nil, err
