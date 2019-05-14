@@ -1,62 +1,40 @@
-# gRPC to gRPC
-This recipe is a proxy gateway for gRPC end points.
+# grpc-performance
+This document contains steps to evaluate gRPC performance using gRPC bidirectional streaming example.The messages stream from gRPC client-->Gateway-->gRPC Echo Server-->Gateway-->gRPC Client.
+
+The gRPC Client outputs the Number of messages sent and received, Average Response Time taken by all the requests, Moving Average Response Time and Transactions per second values.
 
 ## Installation
-* Install [Go](https://golang.org/)
+* The Go programming language version 1.11 or later should be [installed](https://golang.org/doc/install).
 
 ## Setup
 ```bash
+go get -u github.com/project-flogo/cli/...
+go get -u github.com/project-flogo/microgateway/...
+go get -u github.com/rameshpolishetti/movingavg/...
 git clone https://github.com/project-flogo/grpc
-cd grpc/examples/api/grpc-to-grpc
+cd grpc/examples/api/bidi-proxy-gw
 go build
 ```
 
-## Testing
-Start proxy gateway:
+## Performance Testing
+1)Start proxy gateway:
 ```bash
-FLOGO_RUNNER_TYPE=DIRECT ./grpc-to-grpc
+ulimit -n 1048576
+export FLOGO_LOG_LEVEL=ERROR
+FLOGO_RUNNER_TYPE=DIRECT ./bidi-proxy-gw
 ```
 
-Start sample gRPC server.
+2)Start sample gRPC server in a new terminal.
 ```bash
-./grpc-to-grpc -server
+ulimit -n 1048576
+./bidi-proxy-gw -server
 ```
 
-### #1 Testing PetById method
-Run sample gRPC client.
+3)Start the gRPC client in a new terminal.
 ```bash
-./grpc-to-grpc -client -port 9096 -method pet -param 2
+ulimit -n 1048576
+./bidi-proxy-gw -client -method bulkusers -port 9096 -number 500
 ```
-Now you should see logs in proxy gateway terminal and sample gRPC server terminal. Sample output in client terminal can be seen as below.
-```
-res : pet:<id:2 name:"cat2" >
-```
-### #2 Testing UserByName method
-Run sample gRPC client.
-```bash
-./grpc-to-grpc -client -port 9096 -method user -param user2
-```
-Output can be seen as below.
-```
-res : user:<id:2 username:"user2" email:"email2" phone:"phone2" >
-```
-### #3 Testing ListUsers(Server Streaming) method
-Run sample gRPC client.
-```bash
-./grpc-to-grpc -client -port 9096 -method listusers
-```
-Streaming data can be observed at client side. Interrupt the sample server to stop streaming.
 
-### #4 Testing StoreUsers(Client Streaming) method
-Run sample gRPC client.
-```bash
-./grpc-to-grpc -client -port 9096 -method storeusers
-```
-Streaming data can be observed at server side. Interrupt the client to stop streaming.
-
-### #5 Testing BulkUsers(Bidirectional Streaming) method
-Run sample gRPC client.
-```bash
-./grpc-to-grpc -client -port 9096 -method bulkusers
-```
-Streaming data can be observed at both client and server side. One second delay is kept for veiwing purpose.
+4)Stop the gRPC client after the required test duration.
+All the outputs are printed in the client Terminal.
