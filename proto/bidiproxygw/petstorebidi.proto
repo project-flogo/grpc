@@ -1,0 +1,11 @@
+syntax = "proto3";
+package bidiproxygw;
+
+message User {
+    int64   timestamp1 = 1;
+    int64   timestamp2 = 2;
+}
+
+service PetStoreServiceBidi {
+    rpc BulkUsers (stream User) returns (stream User);
+}

@@ -59,6 +59,52 @@ func GRPC2GRPCExample() (engine.Engine, error) {
 	return e, nil
 }
 
+func GRPC2GRPCBidiProxyExample() (engine.Engine, error) {
+	app := api.NewApp()
+
+	gateway := microapi.New("PetStoreDispatch")
+	service := gateway.NewService("PetStoregRPCServer", &activity.Activity{})
+	service.SetDescription("Make calls to sample PetStore gRPC server")
+	service.AddSetting("operatingMode", "grpc-to-grpc")
+	service.AddSetting("hosturl", "localhost:9000")
+	step := gateway.NewStep(service)
+	step.AddInput("grpcMthdParamtrs", "=$.payload.grpcData")
+	response := gateway.NewResponse(true)
+	response.SetIf("$.PetStoregRPCServer.outputs.body.error == 'true'")
+	response.SetCode(404)
+	response.SetData("=$.PetStoregRPCServer.outputs.body.details")
+	response = gateway.NewResponse(false)
+	response.SetCode(200)
+	response.SetData("=$.PetStoregRPCServer.outputs.body")
+	PetStoreDispatch, err := gateway.AddResource(app)
+	if err != nil {
+		return nil, err
+	}
+
+	triggerSettings := &trigger.Settings{
+		Port:        9096,
+		ProtoName:   "petstorebidi",
+		ServiceName: "PetStoreServiceBidi",
+	}
+	trg := app.NewTrigger(&trigger.Trigger{}, triggerSettings)
+
+	handler, err := trg.NewHandler(&trigger.HandlerSettings{})
+	if err != nil {
+		return nil, err
+	}
+	_, err = handler.NewAction(&microgateway.Action{}, PetStoreDispatch)
+	if err != nil {
+		return nil, err
+	}
+
+	e, err := api.NewEngine(app)
+	if err != nil {
+		return nil, err
+	}
+
+	return e, nil
+}
+
 func GRPC2RestExample() (engine.Engine, error) {
 	app := api.NewApp()
 

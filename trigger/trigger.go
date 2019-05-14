@@ -144,7 +144,7 @@ func (t *Trigger) Start() error {
 	// start the trigger
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		log.Error(err)
+		log.FieldError(err)
 	}
 
 	opts := []grpc.ServerOption{}
@@ -152,7 +152,7 @@ func (t *Trigger) Start() error {
 	if t.enableTLS {
 		creds, err := credentials.NewServerTLSFromFile(t.serveCert, t.serveKey)
 		if err != nil {
-			log.Error(err)
+			log.FieldError(err)
 		}
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	}
