@@ -20,9 +20,7 @@ func main() {
 	memProfile := flag.String("memprofile", "", "Writes memory profile to the specified file")
 	clientMode := flag.Bool("client", false, "command to run client")
 	serverMode := flag.Bool("server", false, "command to run server")
-	methodName := flag.String("method", "pet", "method name")
 	number := flag.Int("number", 1, "number of times to run client")
-	paramVal := flag.String("param", "user2", "method param")
 	port := flag.String("port", "", "port value")
 	flag.Parse()
 
@@ -51,7 +49,7 @@ func main() {
 	}
 
 	if *clientMode {
-		bidiproxygw.CallClient(port, methodName, *paramVal, nil, *number)
+		bidiproxygw.CallClient(port, *number)
 	} else if *serverMode {
 		server, _ := bidiproxygw.CallServer()
 		server.Start()

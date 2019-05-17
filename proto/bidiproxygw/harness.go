@@ -19,8 +19,8 @@ import (
 
 // ServerStrct is a stub for your Trigger implementation
 type ServerStrct struct {
-	Server     *grpc.Server
-	userMapArr map[string]User
+	Server       *grpc.Server
+	payladMapAry map[string]Payload
 }
 
 var clntRcvdCount []int64
@@ -38,7 +38,7 @@ var totalSc, totalRc int64
 
 var minRT, maxRT int64 = 1000000000, 0
 
-func CallClient(port *string, option *string, name string, data func(data interface{}) bool, threads int) (interface{}, error) {
+func CallClient(port *string, threads int) (interface{}, error) {
 	hostIP := os.Getenv("HOSTIP")
 	if len(hostIP) == 0 {
 		hostIP = "localhost"
@@ -56,7 +56,7 @@ func CallClient(port *string, option *string, name string, data func(data interf
 		return nil, err
 	}
 	defer conn.Close()
-	client := NewPetStoreServiceBidiClient(conn)
+	client := NewSampleServiceBidiClient(conn)
 
 	ma, _ := sma.New(600000)
 	movingRspTm = sma.GetThreadSafeSMA(ma)
@@ -77,7 +77,7 @@ func CallClient(port *string, option *string, name string, data func(data interf
 	for thread := 0; thread < threads; thread++ {
 		time.Sleep(20 * time.Millisecond)
 		fmt.Println(thread)
-		go bulkUsers(client, data, thread)
+		go bidiStreaming(client, thread)
 	}
 	fmt.Println("All Threads Activated", time.Now())
 
@@ -150,8 +150,8 @@ func totalCount(arr []int) int {
 	return total
 }
 
-func bulkUsers(client PetStoreServiceBidiClient, data func(data interface{}) bool, thread int) error {
-	stream, err := client.BulkUsers(context.Background())
+func bidiStreaming(client SampleServiceBidiClient, thread int) error {
+	stream, err := client.BidiStreaming(context.Background())
 	if err != nil {
 		fmt.Println("err1", err)
 		return err
@@ -161,7 +161,7 @@ func bulkUsers(client PetStoreServiceBidiClient, data func(data interface{}) boo
 	waitc := make(chan struct{})
 	go func() {
 		for {
-			user, err := stream.Recv()
+			payload, err := stream.Recv()
 			if err == io.EOF {
 				clntRcvdCount[thread] = ttlRspTm
 				clntEOFCount[thread] = 1
@@ -170,14 +170,14 @@ func bulkUsers(client PetStoreServiceBidiClient, data func(data interface{}) boo
 				return
 			}
 			if err != nil {
-				log.Fatalf("Failed to receive a user : %v", err)
+				log.Fatalf("Failed to receive a payload : %v", err)
 				close(waitc)
 				return
 			}
-			if user != nil {
+			if payload != nil {
 				atomic.AddInt64(&totalRc, 1)
 				t1 := time.Now().UnixNano()
-				rspTm = t1 - user.GetTimestamp1()
+				rspTm = t1 - payload.GetTimestamp1()
 				movingRspTm.AddSampleInt64(rspTm)
 				cumulativeRspTm.AddSampleInt64(rspTm)
 				if rspTm > 1000000000 {
@@ -190,21 +190,16 @@ func bulkUsers(client PetStoreServiceBidiClient, data func(data interface{}) boo
 				if rspTm > maxRT {
 					atomic.StoreInt64(&maxRT, rspTm)
 				}
-				if data != nil {
-					data(user)
-				}
 			}
 		}
 	}()
 	for {
 		tN := time.Now().UnixNano()
-		user := User{
-			// Username: "cuser" + strconv.Itoa(thread),
+		payload := Payload{
 			Timestamp1: tN,
 		}
-		//fmt.Println("SEND: ", user.Username)
-		if err := stream.Send(&user); err != nil {
-			fmt.Println("error while sending user", user, err)
+		if err := stream.Send(&payload); err != nil {
+			fmt.Println("error while sending payload", payload, err)
 			return err
 		}
 		atomic.AddInt64(&totalSc, 1)
@@ -221,34 +216,36 @@ func bulkUsers(client PetStoreServiceBidiClient, data func(data interface{}) boo
 	return nil
 }
 
+// CallServer registers and calls sample bidi server
 func CallServer() (*ServerStrct, error) {
 	s := grpc.NewServer()
 	server := ServerStrct{
-		Server:     s,
-		userMapArr: make(map[string]User),
+		Server:       s,
+		payladMapAry: make(map[string]Payload),
 	}
 
-	RegisterPetStoreServiceBidiServer(s, &server)
+	RegisterSampleServiceBidiServer(s, &server)
 
 	return &server, nil
 }
 
+// Start creates running grpc instance
 func (t *ServerStrct) Start() error {
 	addr := ":9000"
 	log.Println("Starting server on port: ", addr)
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		fmt.Println("err2", err)
+		fmt.Println("Error occures while starting server: ", err)
 		return err
 	}
 
 	return t.Server.Serve(lis)
 }
 
-func (t *ServerStrct) BulkUsers(bReq PetStoreServiceBidi_BulkUsersServer) error {
-	fmt.Println("server BulkUsers method called")
+func (t *ServerStrct) BidiStreaming(bReq SampleServiceBidi_BidiStreamingServer) error {
+	fmt.Println("server BidiStreaming method called")
 	for {
-		userData, err := bReq.Recv()
+		payload, err := bReq.Recv()
 		if err == io.EOF {
 			break
 		}
@@ -257,8 +254,8 @@ func (t *ServerStrct) BulkUsers(bReq PetStoreServiceBidi_BulkUsersServer) error 
 			break
 		}
 
-		if err := bReq.Send(userData); err != nil {
-			fmt.Println("error while sending user", userData)
+		if err := bReq.Send(payload); err != nil {
+			fmt.Println("error while sending payload", payload)
 			return err
 		}
 	}

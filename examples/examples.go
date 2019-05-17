@@ -83,8 +83,8 @@ func GRPC2GRPCBidiProxyExample() (engine.Engine, error) {
 
 	triggerSettings := &trigger.Settings{
 		Port:        9096,
-		ProtoName:   "petstorebidi",
-		ServiceName: "PetStoreServiceBidi",
+		ProtoName:   "samplebidi",
+		ServiceName: "SampleServiceBidi",
 	}
 	trg := app.NewTrigger(&trigger.Trigger{}, triggerSettings)
 

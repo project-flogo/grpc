@@ -1,5 +1,5 @@
-# grpc-performance
-This document contains steps to evaluate gRPC performance using gRPC bidirectional streaming example.The messages stream from gRPC client-->Gateway-->gRPC Echo Server-->Gateway-->gRPC Client.
+# bidirectional-proxy-gateway
+This example designed to evaluate bidirectional proxy gateway performance using gRPC bidirectional streaming. The messages stream from gRPC client-->Bidirectional Proxy Gateway-->gRPC Echo Server-->Bidirectional Proxy Gateway-->gRPC Client.
 
 The gRPC Client outputs the Number of messages sent and received, Average Response Time taken by all the requests, Moving Average Response Time and Transactions per second values.
 
@@ -8,9 +8,6 @@ The gRPC Client outputs the Number of messages sent and received, Average Respon
 
 ## Setup
 ```bash
-go get -u github.com/project-flogo/cli/...
-go get -u github.com/project-flogo/microgateway/...
-go get -u github.com/rameshpolishetti/movingavg/...
 git clone https://github.com/project-flogo/grpc
 cd grpc/examples/api/bidi-proxy-gw
 go build
@@ -33,7 +30,7 @@ ulimit -n 1048576
 3)Start the gRPC client in a new terminal.
 ```bash
 ulimit -n 1048576
-./bidi-proxy-gw -client -method bulkusers -port 9096 -number 500
+./bidi-proxy-gw -client -port 9096 -number 500
 ```
 
 4)Stop the gRPC client after the required test duration.
