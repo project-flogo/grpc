@@ -76,7 +76,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		logger.Debug("ClientCert: ", a.settings.ClientCert)
 		creds, err := credentials.NewClientTLSFromFile(a.settings.ClientCert, "")
 		if err != nil {
-			log.Error(err)
+			logger.Error(err)
 		}
 
 		opts = []grpc.DialOption{grpc.WithTransportCredentials(creds)}
@@ -117,7 +117,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		return true, nil
 	}
 
-	log.Error(errors.New("Invalid use of service , OperatingMode not recognised"))
+	logger.Error(errors.New("Invalid use of service , OperatingMode not recognised"))
 	return false, errors.New("Invalid use of service , OperatingMode not recognised")
 }
 
