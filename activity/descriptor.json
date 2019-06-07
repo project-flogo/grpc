@@ -1,0 +1,70 @@
+{
+  "name": "grpc-activity",
+  "type": "flogo:activity",
+  "version": "0.0.1",
+  "title": "GRPC Activity",
+  "description": "GRPC Activity",
+  "homepage": "https://github.com/project-flogo/grpc/tree/master/activity",
+  "settings": [
+    {
+      "name": "operatingMode",
+      "type": "string"
+    },
+    {
+      "name": "hosturl",
+      "type": "string"
+    },
+    {
+      "name": "enableTLS",
+      "type": "boolean"
+    },
+    {
+      "name": "clientCert",
+      "type": "string"
+    }
+  ],
+  "input": [
+    {
+      "name": "grpcMthdParamtrs",
+      "type": "object"
+    },
+    {
+      "name": "header",
+      "type": "params"
+    },
+    {
+      "name": "serviceName",
+      "type": "string"
+    },
+    {
+      "name": "protoName",
+      "type": "string"
+    },
+    {
+      "name": "methodName",
+      "type": "string"
+    },
+    {
+      "name": "params",
+      "type": "params"
+    },
+    {
+      "name": "queryParams",
+      "type": "params"
+    },
+    {
+      "name": "content",
+      "type": "any"
+    },
+    {
+      "name": "pathParams",
+      "type": "params"
+    }
+  ],
+  "output": [
+    {
+      "name": "body",
+      "type": "any"
+    }
+  ]
+}

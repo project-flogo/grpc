@@ -1,0 +1,69 @@
+{
+  "name": "grpc-trigger",
+  "type": "flogo:trigger",
+  "version": "0.0.1",
+  "title": "GRPC Trigger",
+  "description": "GRPC Trigger",
+  "homepage": "https://github.com/project-flogo/grpc/tree/master/trigger",
+  "settings": [
+    {
+      "name": "port",
+      "type": "int",
+      "required": true
+    },
+    {
+      "name": "protoName",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "serviceName",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name":"enableTLS",
+      "type":"boolean"
+    },
+    {
+      "name": "serverCert",
+      "type": "string"
+    },
+    {
+      "name": "serverKey",
+      "type": "string"
+    }
+  ],
+  "output": [
+    {
+      "name": "params",
+      "type": "object"
+    },
+    {
+      "name": "grpcData",
+      "type": "object"
+    },
+    {
+      "name": "content",
+      "type": "any"
+    }
+  ],
+  "reply": [
+    {
+      "name": "code",
+      "type": "int"
+    },
+    {
+      "name": "data",
+      "type": "any"
+    }
+  ],
+  "handler": {
+    "settings": [
+      {
+        "name": "methodName",
+        "type": "string"
+      }
+    ]
+  }
+}
