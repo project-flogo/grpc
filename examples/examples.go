@@ -1,6 +1,8 @@
 package examples
 
 import (
+	"os"
+
 	"github.com/project-flogo/contrib/activity/rest"
 	resttrigger "github.com/project-flogo/contrib/trigger/rest"
 	"github.com/project-flogo/core/api"
@@ -62,11 +64,16 @@ func GRPC2GRPCExample() (engine.Engine, error) {
 func GRPC2GRPCBidiProxyExample() (engine.Engine, error) {
 	app := api.NewApp()
 
+	gsIP := os.Getenv("GRPCSERVERIP")
+	if len(gsIP) == 0 {
+		gsIP = "localhost"
+	}
+
 	gateway := microapi.New("PetStoreDispatch")
 	service := gateway.NewService("PetStoregRPCServer", &activity.Activity{})
 	service.SetDescription("Make calls to sample PetStore gRPC server")
 	service.AddSetting("operatingMode", "grpc-to-grpc")
-	service.AddSetting("hosturl", "localhost:9000")
+	service.AddSetting("hosturl", gsIP+":9000")
 	step := gateway.NewStep(service)
 	step.AddInput("grpcMthdParamtrs", "=$.payload.grpcData")
 	response := gateway.NewResponse(true)

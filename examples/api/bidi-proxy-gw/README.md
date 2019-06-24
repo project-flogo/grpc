@@ -15,6 +15,12 @@ go build
 
 ## Performance Testing
 1)Start proxy gateway:
+
+Note: If the gRPC server is running in a different system please set the GRPCSERVERIP variable to corresponding system IP before starting the proxy gateway.
+```bash
+export GRPCSERVERIP=XX.XX.XX.XX
+```
+
 ```bash
 ulimit -n 1048576
 export FLOGO_LOG_LEVEL=ERROR
@@ -28,9 +34,16 @@ ulimit -n 1048576
 ```
 
 3)Start the gRPC client in a new terminal.
+
+Note: If the proxy gateway is running in a different system please set the GWIP variable to corresponding system IP before starting the client.
+
+```bash
+export GWIP=XX.XX.XX.XX
+```
+
 ```bash
 ulimit -n 1048576
-./bidi-proxy-gw -client -port 9096 -number 500
+./bidi-proxy-gw -client -port 9096 -number 465
 ```
 
 4)Stop the gRPC client after the required test duration.

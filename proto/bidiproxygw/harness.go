@@ -39,16 +39,16 @@ var totalSc, totalRc int64
 var minRT, maxRT int64 = 1000000000, 0
 
 func CallClient(port *string, threads int) (interface{}, error) {
-	hostIP := os.Getenv("HOSTIP")
-	if len(hostIP) == 0 {
-		hostIP = "localhost"
+	gwIP := os.Getenv("GWIP")
+	if len(gwIP) == 0 {
+		gwIP = "localhost"
 	}
 
 	clientAddr := *port
 	if len(*port) == 0 {
-		clientAddr = hostIP + ":9000"
+		clientAddr = gwIP + ":9000"
 	} else {
-		clientAddr = hostIP + ":" + *port
+		clientAddr = gwIP + ":" + *port
 	}
 
 	conn, err := grpc.Dial(clientAddr, grpc.WithInsecure())
