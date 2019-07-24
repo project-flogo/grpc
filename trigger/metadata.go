@@ -5,16 +5,17 @@ import (
 )
 
 type Settings struct {
-	Port        int    `md:"port,required"`
-	ProtoName   string `md:"protoName,required"`
-	ServiceName string `md:"serviceName,required"`
-	EnableTLS   bool   `md:"enableTLS"`
-	ServerCert  string `md:"serverCert"`
-	ServerKey   string `md:"serverKey"`
+	Port       int    `md:"port,required"`
+	ProtoName  string `md:"protoName,required"`
+	ProtoFile  string `md:"protoFile"`
+	EnableTLS  bool   `md:"enableTLS"`
+	ServerCert string `md:"serverCert"`
+	ServerKey  string `md:"serverKey"`
 }
 
 type HandlerSettings struct {
-	MethodName      string `md:"methodName"`
+	ServiceName string `md:"serviceName,required"`
+	MethodName  string `md:"methodName,required"`
 }
 
 type Output struct {
@@ -61,9 +62,11 @@ func (r *Reply) ToMap() map[string]interface{} {
 func (r *Reply) FromMap(values map[string]interface{}) error {
 
 	var err error
-	r.Code, err = coerce.ToInt(values["code"])
-	if err != nil {
-		return err
+	if _, ok := values["code"]; ok {
+		r.Code, err = coerce.ToInt(values["code"])
+		if err != nil {
+			return err
+		}
 	}
 	r.Data, _ = values["data"]
 

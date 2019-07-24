@@ -10,9 +10,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/golang/protobuf/jsonpb"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/core/support/log"
 	"github.com/project-flogo/core/trigger"
@@ -58,7 +61,7 @@ type Trigger struct {
 	defaultHandler *Handler
 	server         *grpc.Server
 	TLSConfig
-	logger log.Logger
+	Logger log.Logger
 }
 
 // TLSConfig is to hold tls support data
@@ -76,7 +79,7 @@ func (t *Trigger) Metadata() *trigger.Metadata {
 // Initialize implements trigger.Trigger.Initialize
 func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 	logger := ctx.Logger()
-	t.logger = logger
+	t.Logger = logger
 
 	addr = ":" + strconv.Itoa(t.settings.Port)
 
@@ -93,7 +96,7 @@ func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 				settings: settings,
 			}
 		} else {
-			handlers[settings.MethodName] = &Handler{
+			handlers[settings.ServiceName+"_"+settings.MethodName] = &Handler{
 				handler:  handler,
 				settings: settings,
 			}
@@ -144,7 +147,8 @@ func (t *Trigger) Start() error {
 	// start the trigger
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		t.logger.Error(err)
+		t.Logger.Error(err)
+		return err
 	}
 
 	opts := []grpc.ServerOption{}
@@ -152,96 +156,127 @@ func (t *Trigger) Start() error {
 	if t.enableTLS {
 		creds, err := credentials.NewServerTLSFromFile(t.serveCert, t.serveKey)
 		if err != nil {
-			t.logger.Error(err)
+			t.Logger.Error(err)
+			return err
 		}
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	}
 
 	t.server = grpc.NewServer(opts...)
 
-	serviceName := t.settings.ServiceName
+	// collect all service names used in handlers
+	serviceNames := make(map[string]string)
+	for _, h := range t.handlers {
+		if _, ok := serviceNames[h.settings.ServiceName]; !ok {
+			serviceNames[h.settings.ServiceName] = h.settings.ServiceName
+		}
+	}
 	protoName := t.settings.ProtoName
 	protoName = strings.Split(protoName, ".")[0]
 
+	// Register each serviceName + protoName
 	servRegFlag := false
-	if len(ServiceRegistery.ServerServices) != 0 {
-		for k, service := range ServiceRegistery.ServerServices {
-			if strings.Compare(k, protoName+serviceName) == 0 {
-				t.logger.Infof("Registered Proto [%v] and Service [%v]", protoName, serviceName)
-				service.RunRegisterServerService(t.server, t)
-				servRegFlag = true
+	for serviceName := range serviceNames {
+		if len(ServiceRegistery.ServerServices) != 0 {
+			for k, service := range ServiceRegistery.ServerServices {
+				if strings.Compare(k, protoName+serviceName) == 0 {
+					t.Logger.Infof("Registered Proto [%v] and Service [%v]", protoName, serviceName)
+					service.RunRegisterServerService(t.server, t)
+					servRegFlag = true
+				}
 			}
+			if !servRegFlag {
+				t.Logger.Errorf("Proto [%s] and Service [%s] not registered", protoName, serviceName)
+				return fmt.Errorf("Proto [%s] and Service [%s] not registered", protoName, serviceName)
+			}
+		} else {
+			t.Logger.Error("gRPC server services not registered")
+			return errors.New("gRPC server services not registered")
 		}
-		if !servRegFlag {
-			t.logger.Errorf("Proto [%s] and Service [%s] not registered", protoName, serviceName)
-		}
-	} else {
-		t.logger.Error("gRPC server services not registered")
 	}
 
-	t.logger.Debug("Starting server on port", addr)
+	t.Logger.Debug("Starting server on port", addr)
 
 	go func() {
 		t.server.Serve(lis)
 	}()
 
-	t.logger.Info("Server started")
+	t.Logger.Infof("Server started on port: [%d]", t.settings.Port)
 	return nil
 }
 
 // CallHandler is to call a particular handler based on method name
 func (t *Trigger) CallHandler(grpcData map[string]interface{}) (int, interface{}, error) {
-	t.logger.Info("CallHandler method invoked")
+	t.Logger.Debug("CallHandler method invoked")
 
 	params := make(map[string]interface{})
 	var content interface{}
-
+	m := jsonpb.Marshaler{OrigName: true}
 	// blocking the code for streaming requests
 	if grpcData["contextdata"] != nil {
 		// getting values from inputrequestdata and mapping it to params which can be used in different services like HTTP pathparams etc.
 		s := reflect.ValueOf(grpcData["reqdata"]).Elem()
-		typeOfT := s.Type()
-
+		typeOfS := s.Type()
 		for i := 0; i < s.NumField(); i++ {
 			f := s.Field(i)
-			params[typeOfT.Field(i).Name] = f.Interface()
+			fieldName := proto.GetProperties(typeOfS).Prop[i].OrigName
+			if !strings.HasPrefix(fieldName, "XXX_") {
+				// XXX_ fields will not be mapped
+				if _, ok := f.Interface().(proto.Message); ok {
+					jsonString, err := m.MarshalToString(f.Interface().(proto.Message))
+					if err != nil {
+						t.Logger.Errorf("Marshal failed on field: %s with value: %v", fieldName, f.Interface())
+					}
+					t.Logger.Debugf("Marshaled FieldName: [%s] Value: [%s]", fieldName, jsonString)
+					var paramValue map[string]interface{}
+					json.Unmarshal([]byte(jsonString), &paramValue)
+					params[fieldName] = paramValue
+				} else {
+					t.Logger.Debugf("Field name: [%s] Value: [%v]", fieldName, f.Interface())
+					params[fieldName] = f.Interface()
+				}
+			}
 		}
 
 		// assign req data content to trigger content
 		dataBytes, err := json.Marshal(grpcData["reqdata"])
 		if err != nil {
-			t.logger.Error("Marshal failed on grpc request data")
+			t.Logger.Error("Marshal failed on grpc request data")
+			return 0, nil, err
 		}
 
 		err = json.Unmarshal(dataBytes, &content)
 		if err != nil {
-			t.logger.Error("Unmarshal failed on grpc request data")
+			t.Logger.Error("Unmarshal failed on grpc request data")
+			return 0, nil, err
 		}
 	}
-	grpcData["serviceName"] = t.settings.ServiceName
-	grpcData["protoName"] = t.settings.ProtoName
 
-	out := &Output{
-		Params:   params,
-		GrpcData: grpcData,
-		Content:  content,
-	}
-
-	handler, ok := t.handlers[grpcData["methodName"].(string)]
+	handler, ok := t.handlers[grpcData["serviceName"].(string)+"_"+grpcData["methodName"].(string)]
 	if !ok {
 		handler = t.defaultHandler
 	}
+
 	if handler != nil {
-		t.logger.Debug("Dispatch Found for ", handler.settings.MethodName)
+		grpcData["protoName"] = t.settings.ProtoName
+
+		out := &Output{
+			Params:   params,
+			GrpcData: grpcData,
+			Content:  content,
+		}
+
+		t.Logger.Debug("Dispatch Found for ", handler.settings.ServiceName+"_"+handler.settings.MethodName)
 		results, err := handler.handler.Handle(context.Background(), out)
 		if err != nil {
 			return 0, nil, err
 		}
 		reply := &Reply{}
-		reply.FromMap(results)
+		err = reply.FromMap(results)
+		t.Logger.Debugf("Result from handler: %v", reply.Data)
 		return reply.Code, reply.Data, err
 	}
 
-	t.logger.Error("Dispatch not found")
+	t.Logger.Error("Dispatch not found")
 	return 0, nil, errors.New("Dispatch not found")
 }
