@@ -50,13 +50,20 @@ func (i *triggerInitContext) GetHandlers() []trigger.Handler {
 func TestGRPCTrigger(t *testing.T) {
 	factory := trigger.GetFactory("github.com/project-flogo/grpc/trigger")
 	assert.NotNil(t, factory)
+	hndlrConfigs := []*trigger.HandlerConfig{}
+	hc := &trigger.HandlerConfig{
+		Settings: map[string]interface{}{
+			"serviceName": "PetStoreService",
+		},
+	}
+	hndlrConfigs = append(hndlrConfigs, hc)
 	config := trigger.Config{
 		Id: "test",
 		Settings: map[string]interface{}{
-			"port":        9096,
-			"protoName":   "petstore",
-			"serviceName": "PetStoreService",
+			"port":      9096,
+			"protoName": "petstore",
 		},
+		Handlers: hndlrConfigs,
 	}
 	instance, err := factory.New(&config)
 	assert.Nil(t, err)

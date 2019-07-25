@@ -12,12 +12,13 @@
       "ref": "github.com/project-flogo/grpc/trigger",
       "settings": {
         "port": "9096",
-        "protoName": "petstore",
-    		"serviceName": "PetStoreService"
+        "protoName": "petstore"
       },
       "handlers": [
         {
-          "settings": {},
+          "settings": {
+            "serviceName": "PetStoreService"
+          },
           "actions": [
             {
               "id": "microgateway:PetStoreDispatch"

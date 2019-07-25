@@ -3,27 +3,27 @@
 package grpc2grpc
 
 import (
-	
 	"encoding/json"
 	"fmt"
 	"strings"
+
 	"golang.org/x/net/context"
-	
-	"log"
+
 	"errors"
+	"log"
+
+	"github.com/golang/protobuf/jsonpb"
 	servInfo "github.com/project-flogo/grpc/trigger"
 	"google.golang.org/grpc"
 )
 
-
-
 type serviceImplpetstorePetStoreServiceserver struct {
-	trigger *servInfo.Trigger
+	trigger     *servInfo.Trigger
 	serviceInfo *servInfo.ServiceInfo
 }
 
 var serviceInfopetstorePetStoreServiceserver = &servInfo.ServiceInfo{
-	ProtoName: "petstore",
+	ProtoName:   "petstore",
 	ServiceName: "PetStoreService",
 }
 
@@ -34,18 +34,20 @@ func init() {
 // RunRegisterServerService registers server method implimentaion with grpc
 func (s *serviceImplpetstorePetStoreServiceserver) RunRegisterServerService(serv *grpc.Server, trigger *servInfo.Trigger) {
 	service := &serviceImplpetstorePetStoreServiceserver{
-		trigger: trigger,
+		trigger:     trigger,
 		serviceInfo: serviceInfopetstorePetStoreServiceserver,
 	}
 	RegisterPetStoreServiceServer(serv, service)
 }
 
-func (s *serviceImplpetstorePetStoreServiceserver) PetById(ctx context.Context, req *PetByIdRequest) (res *PetResponse,err error) {
+func (s *serviceImplpetstorePetStoreServiceserver) PetById(ctx context.Context, req *PetByIdRequest) (res *PetResponse, err error) {
 
 	methodName := "PetById"
+	serviceName := "PetStoreService"
 
 	grpcData := make(map[string]interface{})
 	grpcData["methodName"] = methodName
+	grpcData["serviceName"] = serviceName
 	grpcData["contextdata"] = ctx
 	grpcData["reqdata"] = req
 
@@ -62,7 +64,7 @@ func (s *serviceImplpetstorePetStoreServiceserver) PetById(ctx context.Context, 
 	typeMethodRes := fmt.Sprintf("%T", res)
 	if strings.Compare(typeHandRes, typeMethodRes) == 0 {
 		res = replyData.(*PetResponse)
-	} else  if replyData != nil {
+	} else if replyData != nil {
 		var errValue = replyData.(map[string]interface{})["error"]
 		if errValue != nil && len(errValue.(string)) != 0 {
 			return res, errors.New(errValue.(string))
@@ -70,11 +72,13 @@ func (s *serviceImplpetstorePetStoreServiceserver) PetById(ctx context.Context, 
 			rDBytes, err := json.Marshal(replyData)
 			if err != nil {
 				log.Println("error: ", err)
+				return res, err
 			}
-
-			err = json.Unmarshal(rDBytes, &res)
+			res = &PetResponse{}
+			err = jsonpb.UnmarshalString(string(rDBytes), res)
 			if err != nil {
 				log.Println("error: ", err)
+				return res, err
 			}
 		}
 	} else {
@@ -82,17 +86,19 @@ func (s *serviceImplpetstorePetStoreServiceserver) PetById(ctx context.Context, 
 	}
 	//log.Println("response: ", res)
 
-	//User implimentation area
+	//User implementation area
 
 	return res, err
 }
 
-func (s *serviceImplpetstorePetStoreServiceserver) UserByName(ctx context.Context, req *UserByNameRequest) (res *UserResponse,err error) {
+func (s *serviceImplpetstorePetStoreServiceserver) UserByName(ctx context.Context, req *UserByNameRequest) (res *UserResponse, err error) {
 
 	methodName := "UserByName"
+	serviceName := "PetStoreService"
 
 	grpcData := make(map[string]interface{})
 	grpcData["methodName"] = methodName
+	grpcData["serviceName"] = serviceName
 	grpcData["contextdata"] = ctx
 	grpcData["reqdata"] = req
 
@@ -109,7 +115,7 @@ func (s *serviceImplpetstorePetStoreServiceserver) UserByName(ctx context.Contex
 	typeMethodRes := fmt.Sprintf("%T", res)
 	if strings.Compare(typeHandRes, typeMethodRes) == 0 {
 		res = replyData.(*UserResponse)
-	} else  if replyData != nil {
+	} else if replyData != nil {
 		var errValue = replyData.(map[string]interface{})["error"]
 		if errValue != nil && len(errValue.(string)) != 0 {
 			return res, errors.New(errValue.(string))
@@ -117,11 +123,13 @@ func (s *serviceImplpetstorePetStoreServiceserver) UserByName(ctx context.Contex
 			rDBytes, err := json.Marshal(replyData)
 			if err != nil {
 				log.Println("error: ", err)
+				return res, err
 			}
-
-			err = json.Unmarshal(rDBytes, &res)
+			res = &UserResponse{}
+			err = jsonpb.UnmarshalString(string(rDBytes), res)
 			if err != nil {
 				log.Println("error: ", err)
+				return res, err
 			}
 		}
 	} else {
@@ -129,7 +137,7 @@ func (s *serviceImplpetstorePetStoreServiceserver) UserByName(ctx context.Contex
 	}
 	//log.Println("response: ", res)
 
-	//User implimentation area
+	//User implementation area
 
 	return res, err
 }
@@ -137,9 +145,11 @@ func (s *serviceImplpetstorePetStoreServiceserver) UserByName(ctx context.Contex
 func (s *serviceImplpetstorePetStoreServiceserver) ListUsers(req *EmptyReq, sReq PetStoreService_ListUsersServer) error {
 
 	methodName := "ListUsers"
+	serviceName := "PetStoreService"
 
 	grpcData := make(map[string]interface{})
 	grpcData["methodName"] = methodName
+	grpcData["serviceName"] = serviceName
 	grpcData["reqdata"] = req
 	grpcData["strmReq"] = sReq
 
@@ -160,9 +170,11 @@ func (s *serviceImplpetstorePetStoreServiceserver) ListUsers(req *EmptyReq, sReq
 func (s *serviceImplpetstorePetStoreServiceserver) StoreUsers(cReq PetStoreService_StoreUsersServer) error {
 
 	methodName := "StoreUsers"
+	serviceName := "PetStoreService"
 
 	grpcData := make(map[string]interface{})
 	grpcData["methodName"] = methodName
+	grpcData["serviceName"] = serviceName
 	grpcData["strmReq"] = cReq
 
 	_, data, err := s.trigger.CallHandler(grpcData)
@@ -182,9 +194,11 @@ func (s *serviceImplpetstorePetStoreServiceserver) StoreUsers(cReq PetStoreServi
 func (s *serviceImplpetstorePetStoreServiceserver) BulkUsers(bdReq PetStoreService_BulkUsersServer) error {
 
 	methodName := "BulkUsers"
+	serviceName := "PetStoreService"
 
 	grpcData := make(map[string]interface{})
 	grpcData["methodName"] = methodName
+	grpcData["serviceName"] = serviceName
 	grpcData["strmReq"] = bdReq
 
 	_, data, err := s.trigger.CallHandler(grpcData)
@@ -204,4 +218,3 @@ func (s *serviceImplpetstorePetStoreServiceserver) BulkUsers(bdReq PetStoreServi
 func (s *serviceImplpetstorePetStoreServiceserver) ServiceInfo() *servInfo.ServiceInfo {
 	return s.serviceInfo
 }
-

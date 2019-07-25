@@ -36,13 +36,14 @@ func GRPC2GRPCExample() (engine.Engine, error) {
 	}
 
 	triggerSettings := &trigger.Settings{
-		Port:        9096,
-		ProtoName:   "petstore",
-		ServiceName: "PetStoreService",
+		Port:      9096,
+		ProtoName: "petstore",
 	}
 	trg := app.NewTrigger(&trigger.Trigger{}, triggerSettings)
 
-	handler, err := trg.NewHandler(&trigger.HandlerSettings{})
+	handler, err := trg.NewHandler(&trigger.HandlerSettings{
+		ServiceName: "PetStoreService",
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -136,16 +137,16 @@ func GRPC2RestExample() (engine.Engine, error) {
 	}
 
 	triggerSettings := &trigger.Settings{
-		Port:        9096,
-		ProtoName:   "petstore",
-		ServiceName: "GRPC2RestPetStoreService",
+		Port:      9096,
+		ProtoName: "petstore",
 	}
 	trg := app.NewTrigger(&trigger.Trigger{}, triggerSettings)
 
 	action := &microgateway.Action{}
 
 	handler, err := trg.NewHandler(&trigger.HandlerSettings{
-		MethodName: "PetById",
+		ServiceName: "GRPC2RestPetStoreService",
+		MethodName:  "PetById",
 	})
 	if err != nil {
 		return nil, err
@@ -156,7 +157,8 @@ func GRPC2RestExample() (engine.Engine, error) {
 	}
 
 	handler, err = trg.NewHandler(&trigger.HandlerSettings{
-		MethodName: "PetPUT",
+		ServiceName: "GRPC2RestPetStoreService",
+		MethodName:  "PetPUT",
 	})
 	if err != nil {
 		return nil, err
@@ -167,7 +169,8 @@ func GRPC2RestExample() (engine.Engine, error) {
 	}
 
 	handler, err = trg.NewHandler(&trigger.HandlerSettings{
-		MethodName: "UserByName",
+		ServiceName: "GRPC2RestPetStoreService",
+		MethodName:  "UserByName",
 	})
 	if err != nil {
 		return nil, err

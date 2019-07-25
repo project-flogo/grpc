@@ -307,12 +307,12 @@ const grpcToRestJSON = `
 		"ref": "github.com/project-flogo/grpc/trigger",
 		"settings": {
 		  "port": "9096",
-		  "protoName": "petstore",
-			  "serviceName": "GRPC2RestPetStoreService"
+		  "protoName": "petstore"
 		},
 		"handlers": [
 		  {
 			"settings": {
+			  "serviceName": "GRPC2RestPetStoreService",
 			  "methodName": "PetById"
 			},
 			"actions": [
@@ -323,6 +323,7 @@ const grpcToRestJSON = `
 		  },
 		  {
 			"settings": {
+			  "serviceName": "GRPC2RestPetStoreService",
 			  "methodName": "PetPUT"
 			},
 			"actions": [
@@ -333,6 +334,7 @@ const grpcToRestJSON = `
 		  },
 		  {
 			"settings": {
+			  "serviceName": "GRPC2RestPetStoreService",
 			  "methodName": "UserByName"
 			},
 			"actions": [
