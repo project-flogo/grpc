@@ -11,12 +11,14 @@
     {
       "name": "port",
       "type": "int",
-      "required": true
+      "required": true,
+      "description": "The port to listen on"
     },
     {
       "name": "protoName",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The name of the proto file"
     },
     {
       "name": "protoFile",
@@ -25,39 +27,47 @@
     {
       "name":"enableTLS",
       "type":"boolean",
-      "value": false
+      "value": false,
+      "description": "true - To enable TLS (Transport Layer Security), false - No TLS security"
     },
     {
       "name": "serverCert",
-      "type": "string"
+      "type": "string",
+      "description": "Server certificate file in PEM format. Need to provide file name along with path. Path can be relative to gateway binary location."
     },
     {
       "name": "serverKey",
-      "type": "string"
+      "type": "string",
+      "description": "Server private key file in PEM format. Need to provide file name along with path. Path can be relative to gateway binary location."
     }
   ],
   "output": [
     {
       "name": "params",
-      "type": "object"
+      "type": "object",
+      "description": "Request params"
     },
     {
       "name": "grpcData",
-      "type": "object"
+      "type": "object",
+      "description": "HTTP request payload"
     },
     {
       "name": "content",
-      "type": "any"
+      "type": "any",
+      "description": "gRPC Method parameters"
     }
   ],
   "reply": [
     {
       "name": "code",
-      "type": "integer"
+      "type": "integer",
+      "description": "Status code"
     },
     {
       "name": "data",
-      "type": "any"
+      "type": "any",
+      "description": "data"
     }
   ],
   "handler": {
@@ -70,7 +80,8 @@
       {
         "name": "methodName",
         "type": "string",
-        "required": true
+        "required": true,
+        "description": "Name of the method"
       }
     ]
   }
