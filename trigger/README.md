@@ -79,7 +79,7 @@ settings, outputs and handler:
 | Key    | Description   |
 |:-----------|:--------------|
 | params | Request params |
-| content | HTTP request paylod |
+| content | HTTP request payload |
 | grpcData | gRPC Method parameters |
 
 ### Handler settings

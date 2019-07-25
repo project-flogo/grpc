@@ -8,63 +8,77 @@
   "settings": [
     {
       "name": "operatingMode",
-      "type": "string"
+      "type": "string",
+      "description": "Either 'grpc-to-grpc' or 'rest-to-grpc'"
     },
     {
       "name": "hosturl",
-      "type": "string"
+      "type": "string",
+      "description": "A gRPC end point url with port"
     },
     {
       "name": "enableTLS",
-      "type": "boolean"
+      "type": "boolean",
+      "description": "true - To enable TLS (Transport Layer Security), false - No TLS security"
     },
     {
       "name": "clientCert",
-      "type": "string"
+      "type": "string",
+      "description": "Server certificate file in PEM format. Need to provide file name along with path. Path can be relative to gateway binary location."
     }
   ],
   "input": [
     {
       "name": "grpcMthdParamtrs",
-      "type": "object"
+      "type": "object",
+      "description": "A grpcMthdParamtrs payload which holds full information like method parameters, service name, proto name, method name etc."
     },
     {
       "name": "header",
-      "type": "params"
+      "type": "params",
+      "description": "HTTP request header params"
     },
     {
       "name": "serviceName",
-      "type": "string"
+      "type": "string",
+      "description": "Name of the service present in proto"
     },
     {
       "name": "protoName",
-      "type": "string"
+      "type": "string",
+      "description": "Name of the proto file used"
     },
     {
       "name": "methodName",
-      "type": "string"
+      "type": "string",
+      "description": "rpc method name present inside service"
     },
     {
       "name": "params",
-      "type": "params"
+      "type": "params",
+      "description": "HTTP request params"
     },
     {
       "name": "queryParams",
-      "type": "params"
+      "type": "params",
+      "description": "HTTP request query params"
     },
     {
       "name": "content",
-      "type": "any"
+      "type": "any",
+      "description": "HTTP request paylod"
     },
     {
       "name": "pathParams",
-      "type": "params"
+      "type": "params",
+      "description": "HTTP request path params"
     }
   ],
   "output": [
     {
       "name": "body",
-      "type": "any"
+      "type": "any",
+      "description": "The response object from gRPC end server"
     }
   ]
 }
