@@ -14,8 +14,8 @@ type Settings struct {
 }
 
 type HandlerSettings struct {
-	ServiceName string `md:"serviceName,required"`
-	MethodName  string `md:"methodName,required"`
+	ServiceName string `md:"serviceName"`
+	MethodName  string `md:"methodName"`
 }
 
 type Output struct {

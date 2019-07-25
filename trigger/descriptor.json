@@ -75,12 +75,11 @@
       {
         "name": "serviceName",
         "type": "string",
-        "required": true
+        "description": "Name of the service"
       },
       {
         "name": "methodName",
         "type": "string",
-        "required": true,
         "description": "Name of the method"
       }
     ]
