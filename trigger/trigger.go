@@ -30,11 +30,12 @@ func init() {
 	trigger.Register(&Trigger{}, &Factory{})
 }
 
-// GRPCTriggerFactory is a gRPC Trigger factory
+// Factory is a gRPC Trigger factory
 type Factory struct {
 	metadata *trigger.Metadata
 }
 
+// New creates a new trigger instance
 func (*Factory) New(config *trigger.Config) (trigger.Trigger, error) {
 	s := &Settings{}
 	err := metadata.MapToStruct(config.Settings, s, true)
@@ -44,16 +45,18 @@ func (*Factory) New(config *trigger.Config) (trigger.Trigger, error) {
 	return &Trigger{settings: s, config: config}, nil
 }
 
+// Metadata get trigger metadata
 func (f *Factory) Metadata() *trigger.Metadata {
 	return triggerMetadata
 }
 
+// Handler struct
 type Handler struct {
 	handler  trigger.Handler
 	settings *HandlerSettings
 }
 
-// GRPCTrigger is a stub for your Trigger implementation
+// Trigger is a stub for your gRPC Trigger implementation
 type Trigger struct {
 	config         *trigger.Config
 	settings       *Settings
@@ -164,35 +167,27 @@ func (t *Trigger) Start() error {
 
 	t.server = grpc.NewServer(opts...)
 
-	// collect all service names used in handlers
-	serviceNames := make(map[string]string)
-	for _, h := range t.handlers {
-		if _, ok := serviceNames[h.settings.ServiceName]; !ok {
-			serviceNames[h.settings.ServiceName] = h.settings.ServiceName
-		}
-	}
 	protoName := t.settings.ProtoName
 	protoName = strings.Split(protoName, ".")[0]
 
 	// Register each serviceName + protoName
-	servRegFlag := false
-	for serviceName := range serviceNames {
-		if len(ServiceRegistery.ServerServices) != 0 {
-			for k, service := range ServiceRegistery.ServerServices {
-				if strings.Compare(k, protoName+serviceName) == 0 {
-					t.Logger.Infof("Registered Proto [%v] and Service [%v]", protoName, serviceName)
-					service.RunRegisterServerService(t.server, t)
-					servRegFlag = true
-				}
+	if len(ServiceRegistery.ServerServices) != 0 {
+		for k, service := range ServiceRegistery.ServerServices {
+			servRegFlag := false
+			if strings.Compare(k, protoName+service.ServiceInfo().ServiceName) == 0 {
+				t.Logger.Infof("Registered Proto [%v] and Service [%v]", protoName, service.ServiceInfo().ServiceName)
+				service.RunRegisterServerService(t.server, t)
+				servRegFlag = true
 			}
 			if !servRegFlag {
-				t.Logger.Errorf("Proto [%s] and Service [%s] not registered", protoName, serviceName)
-				return fmt.Errorf("Proto [%s] and Service [%s] not registered", protoName, serviceName)
+				t.Logger.Errorf("Proto [%s] and Service [%s] not registered", protoName, service.ServiceInfo().ServiceName)
+				return fmt.Errorf("Proto [%s] and Service [%s] not registered", protoName, service.ServiceInfo().ServiceName)
 			}
-		} else {
-			t.Logger.Error("gRPC server services not registered")
-			return errors.New("gRPC server services not registered")
 		}
+
+	} else {
+		t.Logger.Error("gRPC server services not registered")
+		return errors.New("gRPC server services not registered")
 	}
 
 	t.Logger.Debug("Starting server on port", addr)

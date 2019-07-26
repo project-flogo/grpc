@@ -55,6 +55,7 @@ func (s *serviceImplpetstoreGRPC2RestPetStoreServiceserver) PetById(ctx context.
 
 	if err != nil {
 		log.Println("error: ", err)
+		return nil, err
 	}
 
 	typeHandRes := fmt.Sprintf("%T", replyData)
@@ -106,6 +107,7 @@ func (s *serviceImplpetstoreGRPC2RestPetStoreServiceserver) UserByName(ctx conte
 
 	if err != nil {
 		log.Println("error: ", err)
+		return nil, err
 	}
 
 	typeHandRes := fmt.Sprintf("%T", replyData)
@@ -157,6 +159,7 @@ func (s *serviceImplpetstoreGRPC2RestPetStoreServiceserver) PetPUT(ctx context.C
 
 	if err != nil {
 		log.Println("error: ", err)
+		return nil, err
 	}
 
 	typeHandRes := fmt.Sprintf("%T", replyData)
@@ -208,6 +211,7 @@ func (s *serviceImplpetstoreGRPC2RestPetStoreServiceserver) UserPUT(ctx context.
 
 	if err != nil {
 		log.Println("error: ", err)
+		return nil, err
 	}
 
 	typeHandRes := fmt.Sprintf("%T", replyData)

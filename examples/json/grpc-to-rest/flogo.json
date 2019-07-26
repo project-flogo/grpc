@@ -61,7 +61,7 @@
           {
             "service": "PetStorePets",
             "input": {
-              "pathParams.id": "=$.payload.params.Id"
+              "pathParams.id": "=$.payload.params.id"
             }
           }
         ],
@@ -160,7 +160,7 @@
           {
             "service": "PetStoreUsersByName",
             "input": {
-              "pathParams.username": "=$.payload.params.Username"
+              "pathParams.username": "=$.payload.params.username"
             }
           }
         ],

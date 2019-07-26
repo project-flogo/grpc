@@ -22,6 +22,7 @@ func (h *handler) Name() string {
 
 func (h *handler) Settings() map[string]interface{} {
 	return map[string]interface{}{
+		"serviceName":     "PetStoreService",
 		"autoIdReply":     false,
 		"useReplyHandler": false,
 	}
@@ -31,7 +32,12 @@ func (h *handler) Handle(ctx context.Context, triggerData interface{}) (map[stri
 	h.handled = true
 	return map[string]interface{}{
 		"code": 200,
-		"data": map[string]interface{}{"message": "hello world"},
+		"data": map[string]interface{}{
+			"pet": map[string]interface{}{
+				"id":   2,
+				"name": "pet2",
+			},
+		},
 	}, nil
 }
 

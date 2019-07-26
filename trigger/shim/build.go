@@ -81,6 +81,7 @@ func (s *serviceImpl{{$protoName}}{{$serviceName}}{{$option}}) {{.MethodName}}(c
 	_, replyData, err := s.trigger.CallHandler(grpcData)
 
 	if err != nil {
+		s.trigger.Logger.Error("ServerStubError: ", err.Error())
 		return nil, err
 	}
 

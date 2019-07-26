@@ -55,6 +55,7 @@ func (s *serviceImplpetstorePetStoreServiceserver) PetById(ctx context.Context, 
 
 	if err != nil {
 		log.Println("error: ", err)
+		return nil, err
 	}
 
 	typeHandRes := fmt.Sprintf("%T", replyData)
@@ -106,6 +107,7 @@ func (s *serviceImplpetstorePetStoreServiceserver) UserByName(ctx context.Contex
 
 	if err != nil {
 		log.Println("error: ", err)
+		return nil, err
 	}
 
 	typeHandRes := fmt.Sprintf("%T", replyData)

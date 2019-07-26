@@ -129,7 +129,7 @@ func testGRPC2Rest(t *testing.T, e engine.Engine) {
 	r := mux.NewRouter()
 	r.HandleFunc("/pet/{id}", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
-		petJSONPayload := "{\n \"Name\": \"testpet\" , \"id\": 3 \n}"
+		petJSONPayload := "{\n \"name\": \"testpet\" , \"id\": 3 \n}"
 		io.WriteString(w, petJSONPayload)
 	})
 	r.HandleFunc("/pet", func(w http.ResponseWriter, r *http.Request) {
@@ -356,7 +356,7 @@ const grpcToRestJSON = `
 			{
 			  "service": "PetStorePets",
 			  "input": {
-				"pathParams.id": "=$.payload.params.Id"
+				"pathParams.id": "=$.payload.params.id"
 			  }
 			}
 		  ],
@@ -455,7 +455,7 @@ const grpcToRestJSON = `
 			{
 			  "service": "PetStoreUsersByName",
 			  "input": {
-				"pathParams.username": "=$.payload.params.Username"
+				"pathParams.username": "=$.payload.params.username"
 			  }
 			}
 		  ],
