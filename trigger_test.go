@@ -22,6 +22,7 @@ func (h *handler) Name() string {
 
 func (h *handler) Settings() map[string]interface{} {
 	return map[string]interface{}{
+		"serviceName":     "PetStoreService",
 		"autoIdReply":     false,
 		"useReplyHandler": false,
 	}
@@ -31,7 +32,12 @@ func (h *handler) Handle(ctx context.Context, triggerData interface{}) (map[stri
 	h.handled = true
 	return map[string]interface{}{
 		"code": 200,
-		"data": map[string]interface{}{"message": "hello world"},
+		"data": map[string]interface{}{
+			"pet": map[string]interface{}{
+				"id":   2,
+				"name": "pet2",
+			},
+		},
 	}, nil
 }
 
@@ -50,13 +56,20 @@ func (i *triggerInitContext) GetHandlers() []trigger.Handler {
 func TestGRPCTrigger(t *testing.T) {
 	factory := trigger.GetFactory("github.com/project-flogo/grpc/trigger")
 	assert.NotNil(t, factory)
+	hndlrConfigs := []*trigger.HandlerConfig{}
+	hc := &trigger.HandlerConfig{
+		Settings: map[string]interface{}{
+			"serviceName": "PetStoreService",
+		},
+	}
+	hndlrConfigs = append(hndlrConfigs, hc)
 	config := trigger.Config{
 		Id: "test",
 		Settings: map[string]interface{}{
-			"port":        9096,
-			"protoName":   "petstore",
-			"serviceName": "PetStoreService",
+			"port":      9096,
+			"protoName": "petstore",
 		},
+		Handlers: hndlrConfigs,
 	}
 	instance, err := factory.New(&config)
 	assert.Nil(t, err)

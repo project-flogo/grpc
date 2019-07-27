@@ -1,9 +1,11 @@
 {
   "name": "grpc-trigger",
   "type": "flogo:trigger",
+  "shim": "plugin",
   "version": "0.0.1",
-  "title": "GRPC Trigger",
-  "description": "GRPC Trigger",
+  "title": "gRPC Trigger",
+  "description": "gRPC Trigger",
+  "ref":"github.com/project-flogo/grpc/trigger",
   "homepage": "https://github.com/project-flogo/grpc/tree/master/trigger",
   "settings": [
     {
@@ -19,14 +21,13 @@
       "description": "The name of the proto file"
     },
     {
-      "name": "serviceName",
-      "type": "string",
-      "required": true,
-      "description": "The name of the service mentioned in proto file"
+      "name": "protoFile",
+      "type": "string"
     },
     {
       "name":"enableTLS",
       "type":"boolean",
+      "value": false,
       "description": "true - To enable TLS (Transport Layer Security), false - No TLS security"
     },
     {
@@ -60,7 +61,7 @@
   "reply": [
     {
       "name": "code",
-      "type": "int",
+      "type": "integer",
       "description": "Status code"
     },
     {
@@ -71,6 +72,11 @@
   ],
   "handler": {
     "settings": [
+      {
+        "name": "serviceName",
+        "type": "string",
+        "description": "Name of the service"
+      },
       {
         "name": "methodName",
         "type": "string",
