@@ -22,9 +22,7 @@ func (h *handler) Name() string {
 
 func (h *handler) Settings() map[string]interface{} {
 	return map[string]interface{}{
-		"serviceName":     "PetStoreService",
-		"autoIdReply":     false,
-		"useReplyHandler": false,
+		"serviceName": "PetStoreService",
 	}
 }
 
