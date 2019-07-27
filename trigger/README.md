@@ -17,9 +17,8 @@ settings, outputs and handler:
       "required": true
     },
     {
-      "name": "serviceName",
-      "type": "string",
-      "required": true
+      "name": "protoFile",
+      "type": "string"
     },
     {
       "name": "enableTLS",
@@ -37,7 +36,7 @@ settings, outputs and handler:
   "outputs": [
     {
       "name": "params",
-      "type": "params"
+      "type": "object"
     },
     {
       "name": "grpcData",
@@ -51,12 +50,8 @@ settings, outputs and handler:
   "handler": {
     "settings": [
       {
-        "name": "autoIdReply",
-        "type": "boolean"
-      },
-      {
-        "name": "useReplyHandler",
-        "type": "boolean"
+        "name": "serviceName",
+        "type": "string"
       },
       {
         "name": "methodName",
@@ -70,7 +65,7 @@ settings, outputs and handler:
 |:-----------|:--------------|
 | port | The port to listen on |
 | protoName | The name of the proto file|
-| serviceName | The name of the service mentioned in proto file|
+| protoFile| The content of the proto file|
 | enableTLS | true - To enable TLS (Transport Layer Security), false - No TLS security  |
 | serverCert | Server certificate file in PEM format. Need to provide file name along with path. Path can be relative to gateway binary location. |
 | serverKey | Server private key file in PEM format. Need to provide file name along with path. Path can be relative to gateway binary location. |
@@ -85,6 +80,7 @@ settings, outputs and handler:
 ### Handler settings
 | Key    | Description   |
 |:-----------|:--------------|
+| serviceName | The name of the service mentioned in proto file|
 | methodName | Name of the method |
 
 
@@ -107,12 +103,12 @@ Following is the example mashling gateway descriptor uses a grpc trigger.
       "ref": "github.com/project-flogo/grpc/trigger",
       "settings": {
         "port": "9096",
-        "protoName": "petstore",
-    		"serviceName": "GRPC2RestPetStoreService"
+        "protoName": "petstore"
       },
       "handlers": [
         {
           "settings": {
+            "serviceName": "GRPC2RestPetStoreService",
             "methodName": "PetById"
           },
           "actions": [
@@ -154,7 +150,7 @@ Following is the example mashling gateway descriptor uses a grpc trigger.
           {
             "service": "PetStorePets",
             "input": {
-              "pathParams.id": "=$.payload.params.Id"
+              "pathParams.id": "=$.payload.params.id"
             }
           }
         ],
@@ -253,7 +249,7 @@ Following is the example mashling gateway descriptor uses a grpc trigger.
           {
             "service": "PetStoreUsersByName",
             "input": {
-              "pathParams.username": "=$.payload.params.Username"
+              "pathParams.username": "=$.payload.params.username"
             }
           }
         ],

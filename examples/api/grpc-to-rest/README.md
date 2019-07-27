@@ -1,11 +1,11 @@
-# gRPC to gRPC
+# gRPC to Rest
 This recipe is a proxy gateway for gRPC end points.
 
 ## Installation
 * Install [Go](https://golang.org/)
 
 ## Setup
-```
+```bash
 git clone https://github.com/project-flogo/grpc
 cd grpc/examples/api/grpc-to-rest
 go build
