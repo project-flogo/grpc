@@ -7,7 +7,7 @@ import (
 	"github.com/project-flogo/core/support/log"
 	"github.com/project-flogo/core/trigger"
 	"github.com/project-flogo/grpc/proto/grpc2grpc"
-	_ "github.com/project-flogo/grpc/trigger"
+	_ "github.com/project-flogo/grpc/trigger/grpc"
 	"github.com/project-flogo/grpc/util"
 	"github.com/stretchr/testify/assert"
 )
@@ -52,7 +52,7 @@ func (i *triggerInitContext) GetHandlers() []trigger.Handler {
 }
 
 func TestGRPCTrigger(t *testing.T) {
-	factory := trigger.GetFactory("github.com/project-flogo/grpc/trigger")
+	factory := trigger.GetFactory("github.com/project-flogo/grpc/trigger/grpc")
 	assert.NotNil(t, factory)
 	hndlrConfigs := []*trigger.HandlerConfig{}
 	hc := &trigger.HandlerConfig{

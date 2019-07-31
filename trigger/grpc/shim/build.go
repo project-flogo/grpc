@@ -34,7 +34,7 @@ import (
 	"golang.org/x/net/context"
 	{{end}}
 	"errors"
-	servInfo "github.com/project-flogo/grpc/trigger"
+	servInfo "github.com/project-flogo/grpc/trigger/grpc"
 	"github.com/golang/protobuf/jsonpb"
 	"google.golang.org/grpc"
 )

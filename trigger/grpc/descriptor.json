@@ -5,7 +5,7 @@
   "version": "0.0.1",
   "title": "gRPC Trigger",
   "description": "gRPC Trigger",
-  "ref":"github.com/project-flogo/grpc/trigger",
+  "ref":"github.com/project-flogo/grpc/trigger/grpc",
   "homepage": "https://github.com/project-flogo/grpc/tree/master/trigger",
   "settings": [
     {
@@ -22,7 +22,8 @@
     },
     {
       "name": "protoFile",
-      "type": "string"
+      "type": "string",
+      "description": "The content of the proto file"
     },
     {
       "name":"enableTLS",
