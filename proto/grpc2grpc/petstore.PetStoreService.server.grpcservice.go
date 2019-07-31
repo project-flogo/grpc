@@ -13,7 +13,7 @@ import (
 	"log"
 
 	"github.com/golang/protobuf/jsonpb"
-	servInfo "github.com/project-flogo/grpc/trigger"
+	servInfo "github.com/project-flogo/grpc/trigger/grpc"
 	"google.golang.org/grpc"
 )
 

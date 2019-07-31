@@ -304,7 +304,7 @@ const grpcToRestJSON = `
 	  {
 		"name": "flogo-grpc",
 		"id": "MyProxy",
-		"ref": "github.com/project-flogo/grpc/trigger",
+		"ref": "github.com/project-flogo/grpc/trigger/grpc",
 		"settings": {
 		  "port": "9096",
 		  "protoName": "petstore"

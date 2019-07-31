@@ -6,7 +6,7 @@ import (
 	"github.com/project-flogo/core/api"
 	"github.com/project-flogo/core/engine"
 	"github.com/project-flogo/grpc/activity"
-	"github.com/project-flogo/grpc/trigger"
+	trigger "github.com/project-flogo/grpc/trigger/grpc"
 	"github.com/project-flogo/microgateway"
 	microapi "github.com/project-flogo/microgateway/api"
 )

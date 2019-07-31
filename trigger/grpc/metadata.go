@@ -1,4 +1,4 @@
-package trigger
+package grpc
 
 import (
 	"github.com/project-flogo/core/data/coerce"
