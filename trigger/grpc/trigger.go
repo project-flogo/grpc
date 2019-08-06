@@ -2,10 +2,14 @@ package grpc
 
 import (
 	"context"
+	"crypto/tls"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -16,6 +20,7 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/project-flogo/core/data/coerce"
 	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/core/support/log"
 	"github.com/project-flogo/core/trigger"
@@ -63,15 +68,7 @@ type Trigger struct {
 	handlers       map[string]*Handler
 	defaultHandler *Handler
 	server         *grpc.Server
-	TLSConfig
-	Logger log.Logger
-}
-
-// TLSConfig is to hold tls support data
-type TLSConfig struct {
-	enableTLS bool
-	serveKey  string
-	serveCert string
+	Logger         log.Logger
 }
 
 // Metadata implements trigger.Trigger.Metadata
@@ -106,35 +103,22 @@ func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 		}
 	}
 	t.handlers = handlers
-
-	//Check whether TLS (Transport Layer Security) is enabled for the trigger
-	enableTLS := false
-	serverCert := ""
-	serverKey := ""
+	t.Logger.Debugf("Enable TLS: %t", t.settings.EnableTLS)
 	if t.settings.EnableTLS {
-		//TLS is enabled, get server certificate & key
-		enableTLS = true
-		serverCert = t.settings.ServerCert
-		if serverCert == "" {
-			panic(fmt.Sprintf("No serverCert found for trigger '%s' in settings", t.config.Id))
+		// decode server cert and server key
+		serverCert, err := t.decodeCertificate(t.settings.ServerCert)
+		if err != nil {
+			t.Logger.Errorf("Error decoding server certificate: %s", err.Error())
+			return err
 		}
-
-		serverKey = t.settings.ServerKey
-		if serverKey == "" {
-			panic(fmt.Sprintf("No serverKey found for trigger '%s' in settings", t.config.Id))
+		serverKey, err := t.decodeCertificate(t.settings.ServerKey)
+		if err != nil {
+			t.Logger.Errorf("Error decoding server key: %s", err.Error())
+			return err
 		}
-
+		t.settings.ServerCert = string(serverCert)
+		t.settings.ServerKey = string(serverKey)
 	}
-
-	logger.Debug("enableTLS: ", enableTLS)
-	if enableTLS {
-		logger.Debug("serverCert: ", serverCert)
-		logger.Debug("serverKey: ", serverKey)
-	}
-	t.enableTLS = enableTLS
-	t.serveCert = serverCert
-	t.serveKey = serverKey
-
 	return nil
 }
 
@@ -156,12 +140,13 @@ func (t *Trigger) Start() error {
 
 	opts := []grpc.ServerOption{}
 
-	if t.enableTLS {
-		creds, err := credentials.NewServerTLSFromFile(t.serveCert, t.serveKey)
+	if t.settings.EnableTLS {
+		cert, err := tls.X509KeyPair([]byte(t.settings.ServerCert), []byte(t.settings.ServerKey))
 		if err != nil {
 			t.Logger.Error(err)
 			return err
 		}
+		creds := credentials.NewServerTLSFromCert(&cert)
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	}
 
@@ -274,4 +259,59 @@ func (t *Trigger) CallHandler(grpcData map[string]interface{}) (int, interface{}
 
 	t.Logger.Error("Dispatch not found")
 	return 0, nil, errors.New("Dispatch not found")
+}
+
+func (t *Trigger) decodeCertificate(cert string) ([]byte, error) {
+	if cert == "" {
+		return nil, fmt.Errorf("Certificate is Empty")
+	}
+
+	// case 1: if certificate comes from fileselctor it will be base64 encoded
+	if strings.HasPrefix(cert, "{") {
+		t.Logger.Debug("Certificate received from file selector")
+		certObj, err := coerce.ToObject(cert)
+		if err == nil {
+			certValue, ok := certObj["content"].(string)
+			if !ok || certValue == "" {
+				return nil, fmt.Errorf("No content found for certificate")
+			}
+			return base64.StdEncoding.DecodeString(strings.Split(certValue, ",")[1])
+		}
+		return nil, err
+	}
+
+	// case 2: if the certificate is defined as application property in the format "<encoding>,<encodedCertificateValue>"
+	index := strings.IndexAny(cert, ",")
+	if index > -1 {
+		//some encoding is there
+		t.Logger.Debug("Certificate received from application property with encoding")
+		encoding := cert[:index]
+		certValue := cert[index+1:]
+
+		if strings.EqualFold(encoding, "base64") {
+			return base64.StdEncoding.DecodeString(certValue)
+		}
+		return nil, fmt.Errorf("Error parsing the certificate or given encoding may not be supported")
+	}
+
+	// case 3: if the certificate is defined as application property that points to a file
+	if strings.HasPrefix(cert, "file://") {
+		// app property pointing to a file
+		t.Logger.Debug("Certificate received from application property pointing to a file")
+		fileName := t.settings.ServerCert[7:]
+		return ioutil.ReadFile(fileName)
+	}
+
+	// case 4: if certificate is defined as path to a file (in oss)
+	if strings.Contains(cert, "/") || strings.Contains(cert, "\\") {
+		t.Logger.Debug("Certificate received from settings as file path")
+		_, err := os.Stat(cert)
+		if err != nil {
+			t.Logger.Errorf("Cannot find certificate file: %s", err.Error())
+		}
+		return ioutil.ReadFile(cert)
+	}
+
+	t.Logger.Debug("Certificate received from application property without encoding")
+	return []byte(cert), nil
 }
