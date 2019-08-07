@@ -191,7 +191,7 @@ func (t *Trigger) CallHandler(grpcData map[string]interface{}) (int, interface{}
 
 	params := make(map[string]interface{})
 	var content interface{}
-	m := jsonpb.Marshaler{OrigName: true}
+	m := jsonpb.Marshaler{OrigName: true, EmitDefaults: true}
 	// blocking the code for streaming requests
 	if grpcData["contextdata"] != nil {
 		// getting values from inputrequestdata and mapping it to params which can be used in different services like HTTP pathparams etc.
@@ -247,6 +247,7 @@ func (t *Trigger) CallHandler(grpcData map[string]interface{}) (int, interface{}
 		}
 
 		t.Logger.Debug("Dispatch Found for ", handler.settings.ServiceName+"_"+handler.settings.MethodName)
+		t.Logger.Debugf("Calling handler with params: %v", params)
 		results, err := handler.handler.Handle(context.Background(), out)
 		if err != nil {
 			return 0, nil, err
@@ -298,7 +299,7 @@ func (t *Trigger) decodeCertificate(cert string) ([]byte, error) {
 	if strings.HasPrefix(cert, "file://") {
 		// app property pointing to a file
 		t.Logger.Debug("Certificate received from application property pointing to a file")
-		fileName := t.settings.ServerCert[7:]
+		fileName := cert[7:]
 		return ioutil.ReadFile(fileName)
 	}
 
