@@ -27,7 +27,6 @@ import (
 )
 
 var (
-	addr            string
 	triggerMetadata = trigger.NewMetadata(&Settings{}, &HandlerSettings{}, &Output{}, &Reply{})
 )
 
@@ -81,8 +80,6 @@ func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 	logger := ctx.Logger()
 	t.Logger = logger
 
-	addr = ":" + strconv.Itoa(t.settings.Port)
-
 	handlers := make(map[string]*Handler)
 	for _, handler := range ctx.GetHandlers() {
 		settings := &HandlerSettings{}
@@ -132,6 +129,7 @@ func (t *Trigger) Stop() error {
 // Start implements trigger.Trigger.Start
 func (t *Trigger) Start() error {
 	// start the trigger
+	addr := ":" + strconv.Itoa(t.settings.Port)
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		t.Logger.Error(err)
