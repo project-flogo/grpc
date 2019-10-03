@@ -13,7 +13,7 @@
 		"log"
 		
 
-		servInfo "github.com/project-flogo/grpc/activity"
+		servInfo "github.com/project-flogo/grpc/activity/grpc"
 		"google.golang.org/grpc"
 	)
 	

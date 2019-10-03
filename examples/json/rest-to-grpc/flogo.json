@@ -77,7 +77,7 @@
           {
             "name": "PetStore",
             "description": "Make calls to PetStore grpc end point",
-            "ref": "github.com/project-flogo/grpc/activity",
+            "ref": "github.com/project-flogo/grpc/activity/grpc",
             "settings": {
               "operatingMode": "rest-to-grpc",
               "hosturl": "localhost:9000"
@@ -123,7 +123,7 @@
           {
             "name": "PetStore",
             "description": "Make calls to PetStore grpc end point",
-            "ref": "github.com/project-flogo/grpc/activity",
+            "ref": "github.com/project-flogo/grpc/activity/grpc",
             "settings": {
               "operatingMode": "rest-to-grpc",
               "hosturl": "localhost:9000"
