@@ -1,4 +1,4 @@
-package activity
+package grpc
 
 import (
 	"github.com/project-flogo/core/data/coerce"
@@ -31,6 +31,9 @@ func (r *Input) FromMap(values map[string]interface{}) error {
 	if err != nil {
 		return err
 	}
+	if grpcMthdParamtrs == nil {
+		grpcMthdParamtrs = make(map[string]interface{})
+	}
 	r.GRPCMthdParamtrs = grpcMthdParamtrs
 	header, err := coerce.ToParams(values["header"])
 	if err != nil {
@@ -42,16 +45,28 @@ func (r *Input) FromMap(values map[string]interface{}) error {
 		return err
 	}
 	r.ServiceName = serviceName
+	if _, ok := r.GRPCMthdParamtrs["serviceName"]; !ok {
+		r.GRPCMthdParamtrs["serviceName"] = serviceName
+	}
+
 	protoName, err := coerce.ToString(values["protoName"])
 	if err != nil {
 		return err
 	}
 	r.ProtoName = protoName
+	if _, ok := r.GRPCMthdParamtrs["protoName"]; !ok {
+		r.GRPCMthdParamtrs["protoName"] = protoName
+	}
+
 	methodName, err := coerce.ToString(values["methodName"])
 	if err != nil {
 		return err
 	}
 	r.MethodName = methodName
+	if _, ok := r.GRPCMthdParamtrs["methodName"]; !ok {
+		r.GRPCMthdParamtrs["methodName"] = methodName
+	}
+
 	params, err := coerce.ToParams(values["params"])
 	if err != nil {
 		return err

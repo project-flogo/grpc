@@ -63,7 +63,7 @@
           {
             "name": "PetStoregRPCServer",
             "description": "Make calls to sample PetStore gRPC server",
-            "ref": "github.com/project-flogo/grpc/activity",
+            "ref": "github.com/project-flogo/grpc/activity/grpc",
             "settings": {
               "operatingMode": "grpc-to-grpc",
               "hosturl": "localhost:9000"

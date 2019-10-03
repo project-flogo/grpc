@@ -5,7 +5,7 @@ import (
 	resttrigger "github.com/project-flogo/contrib/trigger/rest"
 	"github.com/project-flogo/core/api"
 	"github.com/project-flogo/core/engine"
-	"github.com/project-flogo/grpc/activity"
+	"github.com/project-flogo/grpc/activity/grpc"
 	trigger "github.com/project-flogo/grpc/trigger/grpc"
 	"github.com/project-flogo/microgateway"
 	microapi "github.com/project-flogo/microgateway/api"
@@ -17,7 +17,7 @@ func GRPC2GRPCExample() (engine.Engine, error) {
 	app := api.NewApp()
 
 	gateway := microapi.New("PetStoreDispatch")
-	service := gateway.NewService("PetStoregRPCServer", &activity.Activity{})
+	service := gateway.NewService("PetStoregRPCServer", &grpc.Activity{})
 	service.SetDescription("Make calls to sample PetStore gRPC server")
 	service.AddSetting("operatingMode", "grpc-to-grpc")
 	service.AddSetting("hosturl", "localhost:9000")
@@ -187,7 +187,7 @@ func Rest2GRPCExample() (engine.Engine, error) {
 	app := api.NewApp()
 
 	gateway := microapi.New("PetStoreGETDispatch")
-	service := gateway.NewService("PetStore", &activity.Activity{})
+	service := gateway.NewService("PetStore", &grpc.Activity{})
 	service.SetDescription("Make calls to PetStore grpc end point")
 	service.AddSetting("operatingMode", "rest-to-grpc")
 	service.AddSetting("hosturl", "localhost:9000")
@@ -209,7 +209,7 @@ func Rest2GRPCExample() (engine.Engine, error) {
 	}
 
 	gateway = microapi.New("PetStorePUTDispatch")
-	service = gateway.NewService("PetStore", &activity.Activity{})
+	service = gateway.NewService("PetStore", &grpc.Activity{})
 	service.SetDescription("Make calls to PetStore grpc end point")
 	service.AddSetting("operatingMode", "rest-to-grpc")
 	service.AddSetting("hosturl", "localhost:9000")

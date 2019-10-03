@@ -1,15 +1,16 @@
-package activity
+package grpc
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 
-	"google.golang.org/grpc"
-
+	"github.com/mitchellh/mapstructure"
 	"github.com/project-flogo/core/support/log"
+	"google.golang.org/grpc"
 )
 
 var clientInterfaceObj interface{}
@@ -32,14 +33,40 @@ func (a *Activity) gRPCTogRPCHandler(input *Input, output *Output, logger log.Lo
 				clientInterfaceObj = service.GetRegisteredClientService(conn)
 				clServFlag = true
 
+				methodName := input.GRPCMthdParamtrs["methodName"].(string)
+				if len(requests) > 0 {
+					//For flogo case where all data comes from flogo.json
+					input.GRPCMthdParamtrs["contextdata"] = context.Background()
+				}
 				if input.GRPCMthdParamtrs["contextdata"] != nil {
 
 					inputs := make([]reflect.Value, 2)
 
 					inputs[0] = reflect.ValueOf(input.GRPCMthdParamtrs["contextdata"])
-					inputs[1] = reflect.ValueOf(input.GRPCMthdParamtrs["reqdata"])
+					if reqData, ok := input.GRPCMthdParamtrs["reqdata"]; ok {
+						inputs[1] = reflect.ValueOf(reqData)
+					} else {
+						//No way to handle grpc to grpc
+						//Remove all field except data
+						inputData := make(map[string]interface{})
+						for k, v := range input.GRPCMthdParamtrs {
+							if k == "serviceName" || k == "protoName" || k == "contextdata" || k == "reqdata" || k == "methodName" {
+								continue
+							}
+							inputData[k] = v
+						}
 
-					resultArr := reflect.ValueOf(clientInterfaceObj).MethodByName(input.GRPCMthdParamtrs["methodName"].(string)).Call(inputs)
+						request := GetRequest(protoName + "-" + serviceName + "-" + methodName)
+						if request != nil {
+							err := mapstructure.Decode(inputData, request)
+							if err != nil {
+								return err
+							}
+						}
+						inputs[1] = reflect.ValueOf(request)
+					}
+
+					resultArr := reflect.ValueOf(clientInterfaceObj).MethodByName(methodName).Call(inputs)
 
 					res := resultArr[0]
 					grpcErr := resultArr[1]

@@ -1,4 +1,4 @@
-package activity
+package grpc
 
 import (
 	//used for generated stub files
@@ -35,4 +35,19 @@ func NewServiceRegistry() *ServiceRegistry {
 // RegisterClientService resgisters service
 func (sr *ServiceRegistry) RegisterClientService(service ClientService) {
 	sr.ClientServices[service.ServiceInfo().ProtoName+service.ServiceInfo().ServiceName] = service
+}
+
+//For flogo cases
+var requests map[string]interface{}
+
+func RegisterClientRequest(key string, req interface{}) {
+	if requests == nil {
+		requests = make(map[string]interface{})
+	}
+
+	requests[key] = req
+}
+
+func GetRequest(key string) interface{} {
+	return requests[key]
 }

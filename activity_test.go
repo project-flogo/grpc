@@ -16,7 +16,7 @@ import (
 	"github.com/project-flogo/core/data/mapper"
 	"github.com/project-flogo/core/data/metadata"
 	logger "github.com/project-flogo/core/support/log"
-	grpcactivity "github.com/project-flogo/grpc/activity"
+	grpcactivity "github.com/project-flogo/grpc/activity/grpc"
 	"github.com/project-flogo/grpc/proto/rest2grpc"
 )
 

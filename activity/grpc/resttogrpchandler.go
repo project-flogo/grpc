@@ -1,4 +1,4 @@
-package activity
+package grpc
 
 import (
 	"encoding/json"
