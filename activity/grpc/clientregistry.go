@@ -37,7 +37,6 @@ func (sr *ServiceRegistry) RegisterClientService(service ClientService) {
 	sr.ClientServices[service.ServiceInfo().ProtoName+service.ServiceInfo().ServiceName] = service
 }
 
-//For flogo cases
 var requests map[string]interface{}
 
 func RegisterClientRequest(key string, req interface{}) {

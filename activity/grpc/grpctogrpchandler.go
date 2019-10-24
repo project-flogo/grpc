@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"google.golang.org/grpc/metadata"
 	"reflect"
 	"strings"
 
@@ -34,9 +35,12 @@ func (a *Activity) gRPCTogRPCHandler(input *Input, output *Output, logger log.Lo
 				clServFlag = true
 
 				methodName := input.GRPCMthdParamtrs["methodName"].(string)
+				var throwError bool
 				if len(requests) > 0 {
 					//For flogo case where all data comes from flogo.json
-					input.GRPCMthdParamtrs["contextdata"] = context.Background()
+					md := metadata.New(input.Header)
+					input.GRPCMthdParamtrs["contextdata"] = metadata.NewOutgoingContext(context.Background(), md)
+					throwError = true
 				}
 				if input.GRPCMthdParamtrs["contextdata"] != nil {
 
@@ -66,17 +70,25 @@ func (a *Activity) gRPCTogRPCHandler(input *Input, output *Output, logger log.Lo
 						inputs[1] = reflect.ValueOf(request)
 					}
 
+					if len(input.Header) > 0 {
+						md := metadata.New(input.Header)
+						inputs = append(inputs, reflect.ValueOf(grpc.Header(&md)))
+					}
 					resultArr := reflect.ValueOf(clientInterfaceObj).MethodByName(methodName).Call(inputs)
 
 					res := resultArr[0]
 					grpcErr := resultArr[1]
 					if !grpcErr.IsNil() {
-						erroString := fmt.Sprintf("%v", grpcErr.Interface())
-						logger.Error("Propagating error to calling function:", erroString)
-						erroString = "{\"error\":\"true\",\"details\":{\"error\":\"" + erroString + "\"}}"
-						err := json.Unmarshal([]byte(erroString), &output.Body)
-						if err != nil {
-							return err
+						if throwError {
+							return fmt.Errorf("%v", grpcErr.Interface())
+						} else {
+							erroString := fmt.Sprintf("%v", grpcErr.Interface())
+							logger.Error("Propagating error to calling function:", erroString)
+							erroString = "{\"error\":\"true\",\"details\":{\"error\":\"" + erroString + "\"}}"
+							err := json.Unmarshal([]byte(erroString), &output.Body)
+							if err != nil {
+								return err
+							}
 						}
 					} else {
 						output.Body = res.Interface()
