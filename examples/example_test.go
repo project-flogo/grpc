@@ -20,21 +20,11 @@ import (
 	"github.com/project-flogo/microgateway/api"
 )
 
-func testGRPC2GRPC(t *testing.T, e engine.Engine) {
+func testGRPC2GRPC(t *testing.T, e engine.Engine, done chan bool) {
 	defer api.ClearResources()
-	util.Drain("9000")
-	server, err := grpc2grpc.CallServer()
-	assert.Nil(t, err)
-	go func() {
-		server.Start()
-	}()
-	util.Pour("9000")
-	defer server.Server.Stop()
-
-	server.Done = make(chan bool, 16)
 
 	util.Drain("9096")
-	err = e.Start()
+	err := e.Start()
 	assert.Nil(t, err)
 	defer func() {
 		err := e.Stop()
@@ -56,7 +46,7 @@ func testGRPC2GRPC(t *testing.T, e engine.Engine) {
 	_, err = grpc2grpc.CallClient(&port, &method, "", func(data interface{}) bool {
 		count++
 		if count == 100 {
-			server.Done <- true
+			done <- true
 		}
 		return false
 	})
@@ -65,7 +55,7 @@ func testGRPC2GRPC(t *testing.T, e engine.Engine) {
 
 	method, count = "storeusers", 0
 	_, err = grpc2grpc.CallClient(&port, &method, "", func(data interface{}) bool {
-		<-server.Done
+		<-done
 		count++
 		if count == 100 {
 			return true
@@ -80,10 +70,9 @@ func testGRPC2GRPC(t *testing.T, e engine.Engine) {
 		count++
 		return false
 	})
-	for range server.Done {
+	for range done {
 		count++
 	}
-	server.Done = nil
 	assert.Nil(t, err)
 	assert.Equal(t, 20, count)
 }
@@ -93,9 +82,22 @@ func TestGRPC2GRPCAPI(t *testing.T) {
 		t.Skip("skipping API integration test in short mode")
 	}
 
+	util.Drain("9000")
+	server, err := grpc2grpc.CallServer()
+	assert.Nil(t, err)
+	go func() {
+		server.Start()
+	}()
+	util.Pour("9000")
+	defer server.Server.Stop()
+	server.Done = make(chan bool, 16)
+	defer func() {
+		server.Done = nil
+	}()
+
 	e, err := GRPC2GRPCExample()
 	assert.Nil(t, err)
-	testGRPC2GRPC(t, e)
+	testGRPC2GRPC(t, e, server.Done)
 }
 
 func TestGRPC2GRPCJSON(t *testing.T) {
@@ -103,13 +105,26 @@ func TestGRPC2GRPCJSON(t *testing.T) {
 		t.Skip("skipping JSON integration test in short mode")
 	}
 
+	util.Drain("9000")
+	server, err := grpc2grpc.CallServer()
+	assert.Nil(t, err)
+	go func() {
+		server.Start()
+	}()
+	util.Pour("9000")
+	defer server.Server.Stop()
+	server.Done = make(chan bool, 16)
+	defer func() {
+		server.Done = nil
+	}()
+
 	data, err := ioutil.ReadFile(filepath.FromSlash("./json/grpc-to-grpc/flogo.json"))
 	assert.Nil(t, err)
 	cfg, err := engine.LoadAppConfig(string(data), false)
 	assert.Nil(t, err)
 	e, err := engine.New(cfg)
 	assert.Nil(t, err)
-	testGRPC2GRPC(t, e)
+	testGRPC2GRPC(t, e, server.Done)
 }
 
 func testGRPC2Rest(t *testing.T, e engine.Engine) {
@@ -201,17 +216,9 @@ func TestGRPC2RestJSON(t *testing.T) {
 
 func testRest2GRPC(t *testing.T, e engine.Engine) {
 	defer api.ClearResources()
-	util.Drain("9000")
-	server, err := rest2grpc.CallServer()
-	assert.Nil(t, err)
-	go func() {
-		server.Start()
-	}()
-	util.Pour("9000")
-	defer server.Server.Stop()
 
 	util.Drain("9096")
-	err = e.Start()
+	err := e.Start()
 	assert.Nil(t, err)
 	defer func() {
 		err := e.Stop()
@@ -273,6 +280,15 @@ func TestRest2GRPCAPI(t *testing.T) {
 		t.Skip("skipping API integration test in short mode")
 	}
 
+	util.Drain("9000")
+	server, err := rest2grpc.CallServer()
+	assert.Nil(t, err)
+	go func() {
+		server.Start()
+	}()
+	util.Pour("9000")
+	defer server.Server.Stop()
+
 	e, err := Rest2GRPCExample()
 	assert.Nil(t, err)
 	testRest2GRPC(t, e)
@@ -282,6 +298,15 @@ func TestRest2GRPCJSON(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping JSON integration test in short mode")
 	}
+
+	util.Drain("9000")
+	server, err := rest2grpc.CallServer()
+	assert.Nil(t, err)
+	go func() {
+		server.Start()
+	}()
+	util.Pour("9000")
+	defer server.Server.Stop()
 
 	data, err := ioutil.ReadFile(filepath.FromSlash("./json/rest-to-grpc/flogo.json"))
 	assert.Nil(t, err)
