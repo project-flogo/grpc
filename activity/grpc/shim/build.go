@@ -393,7 +393,7 @@ func (p *ProtoLocat) GetLocation() string {
 }
 
 func (p *ProtoLocat) GetPackage() string {
-	return filepath.Join("engine", p.flowName, p.activityName)
+	return filepath.ToSlash(filepath.Join("engine", p.flowName, p.activityName))
 }
 
 func (f *FlogoApp) GetRef(refAlias string) string {
